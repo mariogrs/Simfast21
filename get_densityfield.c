@@ -30,12 +30,28 @@ long int iMax_ps; /* number of points actually read from the power spectrum file
 double factor;
 
 
+/* Calculates sigma8 directly from a file (for instance from CAMB output) */
+double sig8_file(double *kv, double *Pv, int N) {
+  int i;
+  double dk,k,P,sig8;
+
+  sig8=0;
+  for(i=0;i<N-1;i++) {
+    dk=kv[i+1]-kv[i];
+    k=(kv[i]+kv[i+1])/2.0;
+    P=(Pv[i]+Pv[i+1])/2;      
+    sig8=sig8+k*k*P/(2*PI*PI)*W2(k*8.0)*dk;
+  }
+
+}
+
+
 /*Power spectrum at z=0  */
 double power_k(double k, tf_parms *tf){
   
   double  pkk;
  
-  pkk=factor*factor*powerFunction(k,tf);  //power in (Mpc/h)^3
+  pkk=powerFunction(k,tf);  //power in (Mpc/h)^3
  
   return pkk;
 }
@@ -62,7 +78,7 @@ double deltaK(double k,int flag, tf_parms *tf){
       ind=search_kindex(k);
       variance = matrix_power[1][ind]+(((matrix_power[1][ind+1]-matrix_power[1][ind])/(matrix_power[0][ind+1]-matrix_power[0][ind]))*(k-matrix_power[0][ind]));
     } else variance = power_k(k,tf);
-    variance=sqrt(variance/2.);
+    variance=sqrt(variance/2.)*factor;
   } else variance=0.;
   
   return variance;
@@ -146,16 +162,16 @@ int main(int argc, char **argv){
       elem=fscanf(file_power,"%lf  %lf\n",&matrix_power[0][iMax_ps],&matrix_power[1][iMax_ps]);  
       iMax_ps++;                                              
     }
-    if(matrix_power[0][iMax_ps-1] < global_dk*(global_N_halo/2)*sqrt(3.1)){
+    if(matrix_power[0][iMax_ps-1] < global_dk*(global_N_halo/2.0)*sqrt(3.1)){
       printf("Error:k-range in matter power spectrum file not large enough\n"); 
       printf("%f  %f\n",matrix_power[0][iMax_ps-1],global_dk*(global_N_halo/2)*sqrt(3.1));
       exit(1); 
    }
-
+    sig8_old=sig8_file(matrix_power[0],matrix_power[1],iMax_ps);
   }else{
     sig8_old=sig8(global_omega_m, global_omega_b, global_lambda);
-    factor=global_sig8_new/sig8_old; 
   }  
+  factor=global_sig8_new/sig8_old; 
   /* Construct density field in k-space*/
 
 

@@ -53,6 +53,7 @@ double global_rho_b;
 
 /*------------------------Halo collapse parameters-----------------------------*/
 
+int global_ncells_halo;
 double global_delta_c;
 double global_STa;
 double global_STb;

@@ -29,6 +29,7 @@ Collapsed mass smaller than cell size determined using fcoll - this is experimen
 
 int main(int argc, char **argv){
   
+  int nhalos_cat;
   fftwf_plan pc2r;
   fftwf_plan pr2c;
   fftwf_complex *map_in;
@@ -48,7 +49,7 @@ int main(int argc, char **argv){
   double deltaCMZ;
   double halo_mass;
   double R_lim;
-  Halo_t halo;
+  Halo_t *halo_cat;
   float *map_in_f;
   float *mass_fcoll;
   double sigma_aux;
@@ -102,7 +103,7 @@ int main(int argc, char **argv){
 #endif
   
   if(global_use_fcoll==1){
-    R_lim=1.0*global_dx_halo;
+    R_lim=global_ncells_halo*global_dx_halo;
     halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3);
     printf("mass resolution %E\n",halo_mass);
     if(halo_mass <= global_halo_Mmin+10.) {
@@ -118,6 +119,10 @@ int main(int argc, char **argv){
     } else R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
   }
   
+  if(!(halo_cat=(Halo_t *) fftwf_malloc(global_N_halo*global_N_halo*sizeof(Halo_t)))) {    /* get memory for float map */
+    printf("Memory problem: halo_cat\n");
+   exit(1);
+  } 
   if(!(map_in_f=(float *) fftwf_malloc(global_N3_halo*sizeof(float)))) {    /* get memory for float map */
     printf("Problem1...\n");
    exit(1);
@@ -247,7 +252,8 @@ int main(int argc, char **argv){
 	if(ncells1D==0)ncells1D=1;      
     
 	printf("Checking for halos and overlap...\n");fflush(0);
-	for(i=0;i<global_N_halo;i++){  
+	for(i=0;i<global_N_halo;i++){ 
+	  nhalos_cat=0;
 	  for(j=0;j<global_N_halo;j++){    
 	    for(p=0;p<global_N_halo;p++){
 	      index=i*2*global_N_halo*(global_N_halo/2+1)+j*2*(global_N_halo/2+1)+p;  	  
@@ -281,16 +287,17 @@ int main(int argc, char **argv){
 		  halos3++;
 		  halos++;
 		  for(indice=0;indice<ind;indice++)flag_halo[halo_ind[indice]]=1;
-		  halo.x=i;
-		  halo.y=j;
-		  halo.z=p;
-		  halo.Mass=halo_mass;
-		  halo.Radius=R;
-		  elem=fwrite(&halo,sizeof(Halo_t),1,fid_out);
+		  halo_cat[nhalos_cat].x=i;
+		  halo_cat[nhalos_cat].y=j;
+		  halo_cat[nhalos_cat].z=p;
+		  halo_cat[nhalos_cat].Mass=halo_mass;
+		  halo_cat[nhalos_cat].Radius=R;
+		  nhalos_cat++;
 		}	    
 	      }	
 	    }
 	  }
+	  if(nhalos_cat>0) elem=fwrite(halo_cat,sizeof(Halo_t),nhalos_cat,fid_out);
 	}    
 	printf("Number of halos for M=%E: %ld\n",halo_mass,halos3);fflush(0);
 	

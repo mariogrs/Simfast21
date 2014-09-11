@@ -66,6 +66,7 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"sigma8")==0)global_sig8_new=atof(third);    
 
       /* Halos */
+      else if(strcmp(first,"ncells_halo")==0) global_ncells_halo=atoi(third);
       else if(strcmp(first,"critical_overdensity")==0)global_delta_c=atof(third);
       else if(strcmp(first,"STa")==0)global_STa=atof(third);
       else if(strcmp(first,"STb")==0)global_STb=atof(third);
