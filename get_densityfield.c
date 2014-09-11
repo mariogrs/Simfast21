@@ -42,6 +42,7 @@ double sig8_file(double *kv, double *Pv, int N) {
     P=(Pv[i]+Pv[i+1])/2;      
     sig8=sig8+k*k*P/(2*PI*PI)*W2(k*8.0)*dk;
   }
+  return sig8;
 
 }
 

@@ -14,7 +14,7 @@ aux = auxiliary.o Input_variables.o
 
 
 simfast21: get_densityfield get_velocityfield \
-     get_halos_fcoll get_nldensity adjust_halos \
+     get_halos get_nldensity adjust_halos \
      get_HIIbubbles get_SFR \
      xalpha xc epsilonXon integratexe \
      integrateTempX t21 opdepth
@@ -23,53 +23,53 @@ simfast21: get_densityfield get_velocityfield \
 	${cc} ${flags} -c -o $@ $<
 
 get_densityfield: $(aux) get_densityfield.o
-	$(cc) -o get_densityfield get_densityfield.o $(aux) $(flags)
+	$(cc) -o get_densityfield.x get_densityfield.o $(aux) $(flags)
 
 get_velocityfield: $(aux) get_velocityfield.o
-	$(cc) -o get_velocityfield get_velocityfield.o $(aux) $(flags)
+	$(cc) -o get_velocityfield.x get_velocityfield.o $(aux) $(flags)
 
-get_halos_fcoll: $(aux) get_halos_fcoll.o
-	$(cc) -o get_halos_fcoll get_halos_fcoll.o $(aux) $(flags)
+get_halos: $(aux) get_halos_fcoll.o
+	$(cc) -o get_halos.x get_halos_fcoll.o $(aux) $(flags)
 
 adjust_halos: $(aux) adjust_halos.o
-	$(cc) -o adjust_halos adjust_halos.o $(aux) $(flags)
+	$(cc) -o adjust_halos.x adjust_halos.o $(aux) $(flags)
 
 get_nldensity: $(aux) get_nldensity.o
-	$(cc) -o get_nldensity get_nldensity.o $(aux) $(flags)
+	$(cc) -o get_nldensity.x get_nldensity.o $(aux) $(flags)
 
 get_HIIbubbles: $(aux) get_HIIbubbles.o
-	$(cc) -o get_HIIbubbles get_HIIbubbles.o $(aux) $(flags)
+	$(cc) -o get_HIIbubbles.x get_HIIbubbles.o $(aux) $(flags)
 
 get_SFR: $(aux) get_SFR.o
-	$(cc) -o get_SFR get_SFR.o $(aux) $(flags)
+	$(cc) -o get_SFR.x get_SFR.o $(aux) $(flags)
 
 xalpha: $(aux) xalpha.o
-	$(cc) -o xalpha xalpha.o $(aux) $(flags)
+	$(cc) -o xalpha.x xalpha.o $(aux) $(flags)
 
 xc: $(aux) xc.o
-	$(cc) -o xc xc.o $(aux) $(flags)
+	$(cc) -o xc.x xc.o $(aux) $(flags)
 
 epsilonXon: $(aux) epsilonXon.o
-	$(cc) -o epsilonXon epsilonXon.o $(aux) $(flags)
+	$(cc) -o epsilonXon.x epsilonXon.o $(aux) $(flags)
 
 integratexe: $(aux) integratexe.o
-	$(cc) -o integratexe integratexe.o $(aux) $(flags)
+	$(cc) -o integratexe.x integratexe.o $(aux) $(flags)
 
 integrateTempX: $(aux) integrateTempX.o
-	$(cc) -o integrateTempX integrateTempX.o $(aux) $(flags)
+	$(cc) -o integrateTempX.x integrateTempX.o $(aux) $(flags)
 
 t21: $(aux) t21.o
-	$(cc) -o t21 t21.o $(aux) $(flags)
+	$(cc) -o t21.x t21.o $(aux) $(flags)
 
 opdepth: Input_variables.o opdepth.o
-	$(cc) -o opdepth opdepth.o Input_variables.o -std=c99 -Wall -O3 -lm 
+	$(cc) -o opdepth.x opdepth.o Input_variables.o -std=c99 -Wall -O3 -lm 
 
 clean:
-	rm *.o get_densityfield get_velocityfield \
-                   get_halos_fcoll \
-                   get_nldensity adjust_halos \
-                   get_HIIbubbles\
-                   get_SFR \
-                   xalpha xc epsilonXon integratexe \
-                   integrateTempX t21 opdepth
+	rm *.o get_densityfield.x get_velocityfield.x \
+                   get_halos.x \
+                   get_nldensity.x adjust_halos.x \
+                   get_HIIbubbles.x\
+                   get_SFR.x \
+                   xalpha.x xc.x epsilonXon.x integratexe.x \
+                   integrateTempX.x t21.x opdepth.x
 

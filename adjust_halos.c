@@ -178,7 +178,7 @@ int main(int argc, char **argv){
     }
     free(halo_v);
     
-    if(global_use_fcoll==1){
+    if(global_use_sgrid==1){
       printf("Reading fcoll...\n");fflush(0);
       sprintf(fname, "%s/Halos/halo_fcoll_mass_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_halo,global_L);
       fid=fopen(fname,"rb");

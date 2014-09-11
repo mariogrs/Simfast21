@@ -30,6 +30,7 @@ typedef struct tf_parms_
 } tf_parms;
 
 
+double W2(double x);
 
 int Set_Cosmology(double omega_matter, double omega_baryon, double omega_lambda, double redshift, tf_parms *tf);
 double getGrowth(double z);

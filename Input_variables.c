@@ -71,11 +71,12 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"STa")==0)global_STa=atof(third);
       else if(strcmp(first,"STb")==0)global_STb=atof(third);
       else if(strcmp(first,"STc")==0)global_STc=atof(third);
-      else if(strcmp(first,"Use_Fcoll")==0){
-	if(strcmp(third,"T")==0) global_use_fcoll=1; else global_use_fcoll=0;
+      else if(strcmp(first,"Use_subgrid")==0){
+	if(strcmp(third,"T")==0) global_use_sgrid=1; else global_use_sgrid=0;
       }    
       else if(strcmp(first,"halo_Rmax")==0)global_halo_Rmax=atof(third);
       else if(strcmp(first,"halo_Mmin")==0)global_halo_Mmin=atof(third);
+      else if(strcmp(first,"halo_step")==0)global_Rhalo=atof(third);
 
       /* Ionization */
       else if(strcmp(first,"Ion_eff")==0)global_eff=atof(third);

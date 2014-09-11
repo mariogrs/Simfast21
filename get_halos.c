@@ -63,7 +63,6 @@ int main(int argc, char **argv){
   double zmax,zmin,dz;
   double growth,R,cell_mass;
   double fcoll;
-  double Rratio=1.3;
   
   if(argc == 1 || argc > 5) {
     printf("Generates Halo catalogs for a range of redshifts\n");
@@ -74,9 +73,6 @@ int main(int argc, char **argv){
   get_Simfast21_params(argv[1]);
   //  print_parms();
   
-  if(global_use_fcoll==0){
-    exit(0);
-  }
   if(argc > 2) {
     zmin=atof(argv[2]);
     if (zmin < global_Zminsim) zmin=global_Zminsim;
@@ -102,13 +98,13 @@ int main(int argc, char **argv){
   printf("Using %d threads\n",global_nthreads);fflush(0);
 #endif
   
-  if(global_use_fcoll==1){
+  if(global_use_sgrid==1){
     R_lim=global_ncells_halo*global_dx_halo;
     halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3);
     printf("mass resolution %E\n",halo_mass);
     if(halo_mass <= global_halo_Mmin+10.) {
       printf("No need to do fcoll: resolution is enough for %E mass halos\n",global_halo_Mmin);
-      global_use_fcoll=0;
+      global_use_sgrid=0;
       R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
     }
   }else {
@@ -173,7 +169,7 @@ int main(int argc, char **argv){
       exit(1);
     }
   }  
-  if(global_use_fcoll==1){
+  if(global_use_sgrid==1){
     if(!(mass_fcoll=(float *) fftwf_malloc(global_N3_halo*sizeof(float)))) {    /* get memory for float map */
       printf("Problem...\n");
       exit(1);
@@ -205,7 +201,7 @@ int main(int argc, char **argv){
     if(fid_out==NULL){printf("\n Catalog file error\n"); exit (1);}
     halos=0;  /* counts total halos for one box */
     elem=fwrite(&halos,sizeof(long int),1,fid_out); /* reserve space for number of halos at beginning of file */    
-    R=R_lim*pow(Rratio,(int)(log(global_halo_Rmax/R_lim)/log(Rratio)))+R_lim/10000.;
+    R=R_lim*pow(global_Rhalo,(int)(log(global_halo_Rmax/R_lim)/log(global_Rhalo)))+R_lim/10000.;
     halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R,3);
 
 
@@ -302,7 +298,7 @@ int main(int argc, char **argv){
 	printf("Number of halos for M=%E: %ld\n",halo_mass,halos3);fflush(0);
 	
       }
-      R=R/Rratio;
+      R=R/global_Rhalo;
       halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R,3);
     }
     rewind(fid_out);
@@ -312,7 +308,7 @@ int main(int argc, char **argv){
     printf("Number of halos without fcoll: %ld\n",halos);fflush(0);
 
     /************************************************/
-    if(global_use_fcoll==1){
+    if(global_use_sgrid==1){
        sprintf(halo_filename, "%s/Halos/halo_fcoll_mass_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_halo,global_L);
       fid_out=fopen(halo_filename,"rb");
       if(fid_out!=NULL) {

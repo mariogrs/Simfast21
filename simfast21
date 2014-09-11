@@ -5,40 +5,40 @@ echo Generating the simulation in directory: $1
 
 echo
 echo Density Field...
-./get_densityfield $1
+./get_densityfield.x $1
 echo
-./get_halos_fcoll $1 
+./get_halos.x $1 
 echo
 echo velocity field...
-./get_velocityfield $1
+./get_velocityfield.x $1
 echo
 echo Nonlinear density field... 
-./get_nldensity $1  
+./get_nldensity.x $1  
 echo
 echo adjusted halo box...
-./adjust_halos $1 
+./adjust_halos.x $1 
 echo
 echo ionization fraction...
-./get_HIIbubbles $1
+./get_HIIbubbles.x $1
 echo
 echo Star Formation Rate...
-./get_SFR $1         
+./get_SFR.x $1         
 echo
 echo epsilon over n...
-./epsilonXon $1      
+./epsilonXon.x $1      
 echo
 echo IGM xe...
-./integratexe $1
+./integratexe.x $1
 echo
 echo Xrays Temperature... 
-./integrateTempX $1  
+./integrateTempX.x $1  
 echo
 echo xalpha
-./xalpha $1
+./xalpha.x $1
 echo
 echo xc     
-./xc $1
+./xc.x $1
 echo
 echo 21cm brightness temperature...
-./t21 $1
+./t21.x $1
 echo
