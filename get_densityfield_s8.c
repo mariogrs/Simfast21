@@ -21,15 +21,30 @@ normalized by the matter power spectrum form the Eisenstein&Hu fitting formulae 
 #include <stdio.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
-#include <gsl/gsl_errno.h>
  
 #include "Input_variables.h"
 #include "auxiliary.h"
 
-
 double *matrix_power[2];
 long int iMax_ps; /* number of points actually read from the power spectrum file*/
 double factor;
+
+
+/* Calculates sigma8 directly from a file (for instance from CAMB output) */
+double sig8_file(double *kv, double *Pv, int N) {
+  int i;
+  double dlk,k,P,sig8;
+
+  sig8=0;
+  for(i=0;i<N-1;i++) {
+    dlk=log10(kv[i+1])-log10(kv[i]);
+    k=pow(10,(log10(kv[i])+log10(kv[i+1]))/2.0);
+    P=pow(10,(log10(pow(kv[i],3)*Pv[i])+log10(pow(kv[i+1],3)*Pv[i+1]))/2);      
+    sig8=sig8+P/(2*PI*PI)*W2(k*8.0)*dlk; /* because P is k^3*P(k) */
+  }
+  return sig8;
+
+}
 
 
 /*Power spectrum at z=0  */
@@ -155,15 +170,16 @@ int main(int argc, char **argv){
       printf("%f  %f\n",matrix_power[0][iMax_ps-1],global_dk*(global_N_halo/2)*sqrt(3.1));
       exit(1); 
    }
-    printf("Note: assumes values from CAMB are already normalised!\n");
-    factor=1.0;
+    printf("%d %E %E %E %E\n", iMax_ps,matrix_power[0][iMax_ps-1],matrix_power[1][iMax_ps-1],matrix_power[0][0],matrix_power[1][0]);
+    sig8_old=sig8_file(matrix_power[0],matrix_power[1],iMax_ps);
+    printf("sig8 from CAMB: %f\n",sig8_old); fflush(0);
   }else{
     sig8_old=sig8(global_omega_m, global_omega_b, global_lambda);
-    factor=global_sig8_new/sig8_old; 
   }  
+  factor=global_sig8_new/sig8_old; 
 
 
-  printf("Construct density field in k-space\n");fflush(0);
+  printf("Construct density field in k-space\n");
 
   /* gets random values (period must be larger than global_N_halo**3)
      parallelization requires to "carefully" initialize the RNG for each thread - leave it for now...

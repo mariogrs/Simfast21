@@ -20,9 +20,11 @@ void get_Simfast21_params(char *basedir){
   char line[256],fname[300];
   int length,n;
   char first[100], second[100], third[100];  
+  char *cpoint;
  
   length=256;
-  
+  global_camb_file[0]=0;
+
   sprintf(fname, "%s/simfast21.ini",basedir); 
   if((paramfile=fopen(fname,"r"))==NULL){  
     printf("\nThe parameter file simfast21.ini cannot be open. Exit...\n");
@@ -30,9 +32,11 @@ void get_Simfast21_params(char *basedir){
   }
   global_pk_flag=0;
   while(fgets(line,length,paramfile)!=NULL){
-    if(line[0]!='#' && line[0]!='\n'){   
-      n=sscanf(line,"%s %s %s",first,second,third);
-      if(strcmp(second,"=")!=0) {printf("Wrong format!\n"); exit(1);}
+    if(line[0]!='#' && line[0]!='\n'){
+      if((cpoint=strchr(line,'='))==NULL) {printf("Wrong format! Exiting...\n"); printf("%s\n",line); exit(1);}
+      cpoint[0]=' ';
+      n=sscanf(line,"%s %s",first, third);
+      if(n!=2 || strlen(first)==0 || strlen(third)==0) {printf("Wrong format! Exiting...\n"); printf("%s\n",line); exit(1);}
 
       /* Simulation */
       else if(strcmp(first,"nthreads")==0)global_nthreads=atoi(third);
@@ -66,7 +70,6 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"sigma8")==0)global_sig8_new=atof(third);    
 
       /* Halos */
-      else if(strcmp(first,"ncells_halo")==0) global_ncells_halo=atoi(third);
       else if(strcmp(first,"critical_overdensity")==0)global_delta_c=atof(third);
       else if(strcmp(first,"STa")==0)global_STa=atof(third);
       else if(strcmp(first,"STb")==0)global_STb=atof(third);
@@ -75,6 +78,7 @@ void get_Simfast21_params(char *basedir){
 	if(strcmp(third,"T")==0) global_use_sgrid=1; else global_use_sgrid=0;
       }    
       else if(strcmp(first,"halo_Rmax")==0)global_halo_Rmax=atof(third);
+      else if(strcmp(first,"halo_Rmin_dx")==0)global_halo_Rmin_dx=atof(third);
       else if(strcmp(first,"halo_Mmin")==0)global_halo_Mmin=atof(third);
       else if(strcmp(first,"halo_step")==0)global_Rhalo=atof(third);
 
@@ -110,6 +114,10 @@ void get_Simfast21_params(char *basedir){
   }
   if(global_pk_flag==1) {
     printf("Using CAMB file for cosmology.\n");
+    if(global_camb_file[0]==0) {
+      printf("No CAMB file. Exiting...\n");
+      exit(1);
+    }
     sprintf(fname, "%s/%s",basedir,global_camb_file); 
     set_cosmology_fromCAMB(fname);
   }
@@ -131,6 +139,8 @@ void get_Simfast21_params(char *basedir){
   if(global_halo_Rmax > global_L/2.) global_halo_Rmax=global_L/2.;
   if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.;
 
+  //  print_parms();
+
   fclose(paramfile);
 }
 
@@ -145,6 +155,7 @@ void set_cosmology_fromCAMB(char * paramfilename) {
   char first[99], second[99], third[99];  
   double ombh2,omch2,omk,w;
   char use_phys[99], root[99];
+  char *cpoint;
   length=256;
  
   ombh2=0;
@@ -157,8 +168,11 @@ void set_cosmology_fromCAMB(char * paramfilename) {
   }
   while(fgets(line,length,paramfile)!=NULL){
     if(line[0]!='#' && line[0]!='\n'){
-      n=sscanf(line,"%s %s %s",first,second,third);
-      if(strcmp(second,"=")!=0) {printf("Wrong format!\n"); exit(1);}
+      if((cpoint=strchr(line,'='))==NULL) {printf("Wrong format! Exiting...\n"); printf("%s\n",line); exit(1);}
+      cpoint[0]=' ';
+      n=sscanf(line,"%s %s",first, third);
+      if(n==0 || strlen(first)==0) {printf("Wrong format! Exiting...\n"); printf("%s\n",line); exit(1);}
+
       else if(strcmp(first,"use_physical")==0)strcpy(use_phys,third);
       else if(strcmp(first,"ombh2")==0)ombh2=atof(third);
       else if(strcmp(first,"omch2")==0)omch2=atof(third);
@@ -193,6 +207,7 @@ void set_cosmology_fromCAMB(char * paramfilename) {
 void print_parms(void) {
 
   /*--------------------Simfast21 variables and parameters---------------------------*/
+  printf("Input parameters:\n");
   printf("global_nthreads: %d\n",global_nthreads);
   printf("global_seed: %ld\n",global_seed);
   printf("global_N_halo: %ld\n",global_N_halo); //Linear number of cells of the box for determination of collapsed halos 
@@ -200,11 +215,11 @@ void print_parms(void) {
   printf("global_N_smooth: %ld\n",global_N_smooth); // Linear number of cells of the smoothed boxes  
   printf("global_N3_smooth: %ld\n",global_N3_smooth); // Total number of cells of the smoothed boxes  
   printf("global_smooth_factor: %ld\n",global_smooth_factor); //Just N_halo/N_smooth
-  printf("global_L: %f\n",global_L); //Physical size of the simulation box
-  printf("global_L3: %f\n",global_L3);//Physical volume of the simulation box
-  printf("global_dx_halo: %f\n",global_dx_halo);
-  printf("global_dx_smooth: %f\n",global_dx_smooth);
-  printf("global_dk: %f\n",global_dk);
+  printf("global_L: %f Mpc/h\n",global_L); //Physical size of the simulation box
+  printf("global_L3: %f (Mpc/h)^3\n",global_L3);//Physical volume of the simulation box
+  printf("global_dx_halo: %f Mpc/h\n",global_dx_halo);
+  printf("global_dx_smooth: %f Mpc/h\n",global_dx_smooth);
+  printf("global_dk: %f h/Mpc\n",global_dk);
   printf("global_vi: %d\n",global_vi);
   /* simulation range */
   printf("global_Dzsim: %f\n",global_Dzsim);
@@ -223,17 +238,20 @@ void print_parms(void) {
   printf("global_rho_b: %E\n",global_rho_b);
 
   /*------------------------Halo collapse parameters-----------------------------*/
+  printf("global_Rhalo: %f\n",global_Rhalo);
+  printf("global_use_sgrid: %d\n",global_use_sgrid);
   printf("global_delta_c: %f\n",global_delta_c);
   printf("global_STa: %f\n",global_STa);
   printf("global_STb: %f\n",global_STb);
   printf("global_STc: %f\n",global_STc);
-  printf("global_halo_Rmax: %f\n",global_halo_Rmax);
-  printf("global_halo_Mmin: %f\n",global_halo_Mmin);
+  printf("global_halo_Rmax: %f Mpc/h\n",global_halo_Rmax);
+  printf("global_halo_Rmin_dx: %f (in cell units)\n",global_halo_Rmin_dx);
+  printf("global_halo_Mmin: %E Msun\n",global_halo_Mmin);
 
 
   /*------------------------Ionization parameters-----------------------------*/
   printf("global_eff: %f\n",global_eff); //Efficiency parameter for determination of the ionization field
-  printf("global_bubble_Rmax: %f\n",global_bubble_Rmax);
+  printf("global_bubble_Rmax: %f Mpc/h\n",global_bubble_Rmax);
 
 
   /*----------Variables for reading matter power spectrum from file-------- */
@@ -256,6 +274,7 @@ void print_parms(void) {
   printf("global_flux_Rmax: %f\n",global_flux_Rmax);
   printf("global_A_Lya: %f\n",global_A_Lya);
   printf("global_alpha_Lya: %E\n",global_alpha_Lya); 		
+  printf("\n");
 
   fflush(0);
 

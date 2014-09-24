@@ -99,9 +99,9 @@ int main(int argc, char **argv){
 #endif
   
   if(global_use_sgrid==1){
-    R_lim=global_ncells_halo*global_dx_halo;
+    R_lim=global_halo_Rmin_dx*global_dx_halo;
     halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3);
-    printf("mass resolution %E\n",halo_mass);
+    printf("Minimum mass for standard halo finding method (excursion set formalism) %E\n",halo_mass);
     if(halo_mass <= global_halo_Mmin+10.) {
       printf("No need to do fcoll: resolution is enough for %E mass halos\n",global_halo_Mmin);
       global_use_sgrid=0;
@@ -111,7 +111,7 @@ int main(int argc, char **argv){
     R_lim=0.620350491*global_dx_halo;
     halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3);
     if(halo_mass > global_halo_Mmin) {
-      printf("Warning - minimum mass for simulation is larger than halo_Mmin: better to use fcoll...\n");
+      printf("Warning - minimum mass for simulation is larger than halo_Mmin: better to use subgrid.\n");
     } else R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
   }
   
@@ -131,6 +131,8 @@ int main(int argc, char **argv){
     printf("Problem3...\n");
     exit(1);
   }    
+
+  /* Reading dark matter density box */
   sprintf(dens_filename, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L));  
   fid_in=fopen(dens_filename,"rb");	/* second argument contains name of input file */
   if (fid_in==NULL) {

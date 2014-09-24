@@ -17,6 +17,13 @@ typedef struct Halo_t_
 } Halo_t;
 
 
+/* Halo structure for Garrelt files */
+typedef struct Halo_sim_
+{
+  float val[11]; /* 3 positions in cMpc, 3 velocities in Km/s, 3 velocity dispersions in Km/s, radius and halo mass in log10(M/Msun) */
+} Halo_sim;
+
+
 /* For T_k */
 typedef struct tf_parms_
 {
