@@ -31,10 +31,10 @@ int main(int argc, char **argv){
   double dndm[1000];
   int N;
 
-  if(argc!=4) {
+  if(argc!=3) {
     printf("\nCalculates the halo dn/dm for a given catalogue.\n");
     printf("usage: get_dndm   work_dir   halo_catalog_file\n");
-    printf("Halo catalog in Simfast21 format. Mmin and Mmax in Msun units. Uses logarithmic binning\n\n");
+    printf("Halo catalog in Simfast21 format. Uses logarithmic binning and same mass bins as the simulation.\n\n");
     exit(1);
   }  
 
@@ -43,7 +43,7 @@ int main(int argc, char **argv){
   sprintf(fname, "%s/Halos/%s",argv[1],argv[2]);
   sim_Mmax=(4.0/3.0)*PI*global_rho_m*pow(global_halo_Rmax,3);
   sim_Mmin=(4.0/3.0)*PI*global_rho_m*pow(global_halo_Rmin_dx*global_dx_halo,3);
-  printf("#Input: %s, output: %s, Mmin: %E Msun, Mmax: %E Msun, Sim Mmin: %E Msun, Sim Mmax: %E Msun\n",fname, argv[5], Mmin, Mmax, sim_Mmin, sim_Mmax);
+  //  printf("#Input: %s, output: %s, Mmin: %E Msun, Mmax: %E Msun, Sim Mmin: %E Msun, Sim Mmax: %E Msun\n",fname, argv[5], Mmin, Mmax, sim_Mmin, sim_Mmax);
 
     /* read halo catalog */
     if((fid=fopen(fname,"rb"))==NULL){  
