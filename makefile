@@ -17,7 +17,7 @@ simfast21: get_densityfield get_velocityfield \
      get_halos get_nldensity adjust_halos get_halo_deltan\
      get_HIIbubbles get_SFR \
      xalpha xc epsilonXon integratexe \
-     integrateTempX t21 opdepth get_dndm get_dndmb adndm abias \
+     integrateTempX t21 opdepth get_dndm get_dndmb get_dndmc adndm abias \
      power3df power3dd convert_halos rz
 
 %.o: %.c auxiliary.h Input_variables.h
@@ -46,6 +46,9 @@ get_dndm: $(aux) get_dndm.o
 
 get_dndmb: $(aux) get_dndmb.o
 	$(cc) -o get_dndmb.x get_dndmb.o $(aux) $(flags)
+
+get_dndmc: $(aux) get_dndmc.o
+	$(cc) -o get_dndmc.x get_dndmc.o $(aux) $(flags)
 
 adndm: $(aux) adndm.o
 	$(cc) -o adndm.x adndm.o $(aux) $(flags)

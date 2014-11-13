@@ -28,12 +28,12 @@ int main(int argc, char **argv){
   long int ind, i;
   double Mmin, Mmax; 
   double ntot,sim_Mmax,sim_Mmin, dlm;
-  double dndm[1000];
+  double dndm[10000];
   int N;
 
   if(argc!=3) {
     printf("\nCalculates the halo dn/dm for a given catalogue.\n");
-    printf("usage: get_dndm   work_dir   halo_catalog_file\n");
+    printf("usage: get_dndmb   work_dir   halo_catalog_file\n");
     printf("Halo catalog in Simfast21 format. Uses logarithmic binning and same mass bins as the simulation.\n\n");
     exit(1);
   }  
@@ -68,13 +68,15 @@ int main(int argc, char **argv){
       if(mass < Mmin) Mmin=mass;
     }
     dlm=3*log10(global_Rhalo);
+    printf("Mmax: %E    Mmin: %E     dlm: %E\n", Mmax, Mmin, dlm);
     Mmax=Mmax*pow(global_Rhalo,3);
-    N=(log10(Mmax)-log10(Mmin))/dlm+1;
+    N=(int)roundf((log10(Mmax)-log10(Mmin))/dlm)+1;
+    printf("N: %d\n", N);
     ntot=0.0;
     for(i=0;i<N;i++) dndm[i]=0.0;
     for(i=0;i<nhalos;i++){
       mass=(double)halo_v[i].Mass;
-      ind=(int)roundf(log10(mass/Mmin)/dlm);
+      ind=(int)(log10((mass+0.0001)/Mmin)/dlm);
       dndm[ind]+=1.0;
       ntot+=1.0;
     }
