@@ -17,8 +17,8 @@ simfast21: get_densityfield get_velocityfield \
      get_halos get_nldensity adjust_halos get_halo_deltan\
      get_HIIbubbles get_SFR \
      xalpha xc epsilonXon integratexe \
-     integrateTempX t21 opdepth get_dndm get_dndmb get_dndmc adndm abias \
-     power3df power3dd convert_halos rz
+     integrateTempX t21 opdepth get_dndmc adndm abias \
+     power3d rz
 
 %.o: %.c auxiliary.h Input_variables.h
 	${cc} ${flags} -c -o $@ $<
@@ -37,15 +37,6 @@ adjust_halos: $(aux) adjust_halos.o
 
 get_halo_deltan: $(aux) get_halo_deltan.o
 	$(cc) -o get_halo_deltan.x get_halo_deltan.o $(aux) $(flags)
-
-convert_halos: $(aux) convert_halos.o
-	$(cc) -o convert_halos.x convert_halos.o $(aux) $(flags)
-
-get_dndm: $(aux) get_dndm.o
-	$(cc) -o get_dndm.x get_dndm.o $(aux) $(flags)
-
-get_dndmb: $(aux) get_dndmb.o
-	$(cc) -o get_dndmb.x get_dndmb.o $(aux) $(flags)
 
 get_dndmc: $(aux) get_dndmc.o
 	$(cc) -o get_dndmc.x get_dndmc.o $(aux) $(flags)
@@ -86,11 +77,8 @@ integrateTempX: $(aux) integrateTempX.o
 t21: $(aux) t21.o
 	$(cc) -o t21.x t21.o $(aux) $(flags)
 
-power3df: power3df.o
-	$(cc) -o power3df.x power3df.o $(flags)
-
-power3dd: power3dd.o
-	$(cc) -o power3dd.x power3dd.o $(flags)
+power3d: power3d.o
+	$(cc) -o power3d.x power3d.o $(flags)
 
 opdepth: Input_variables.o opdepth.o
 	$(cc) -o opdepth.x opdepth.o Input_variables.o -std=c99 -Wall -O3 -lm 

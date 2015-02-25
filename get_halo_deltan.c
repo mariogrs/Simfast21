@@ -25,7 +25,7 @@ int main(int argc, char **argv){
   FILE *fid;
   long int x,y,z;
   long int nhalos;
-  double *halo_map;
+  float *halo_map;
   Halo_t *halo_v;
   size_t elem;
   char fname[300];
@@ -35,7 +35,7 @@ int main(int argc, char **argv){
   double ntot,sim_Mmax,sim_Mmin;
 
   if(argc!=6) {
-    printf("\nCalculates halo number density fluctuations in a box for a given mass range. Ouputs a box of NxNxN doubles.\n");
+    printf("\nCalculates halo number density fluctuations in a box for a given mass range. Ouputs a box of NxNxN floats.\n");
     printf("usage: get_halo_deltan   work_dir   halo_catalog_file   Mmin   Mmax  output_box_file\n");
     printf("Halo catalog in Simfast21 format. Mmin and Mmax in Msun units\n");
     printf("Note: make sure that Mmin and Mmax is within the mass range of the halo finding algorithm!\n\n");
@@ -58,7 +58,7 @@ int main(int argc, char **argv){
   if(Mmin < sim_Mmin) printf("Warning: Mmin is smaller than minimum mass used in the standard halo finding method (no subgrid)\n");
   if(Mmax > sim_Mmax) printf("Warning: Mmax is larger than largest halo mass in the simulation.\n");
 
-  if(!(halo_map=(double *) malloc(global_N3_halo*sizeof(double)))) {
+  if(!(halo_map=(float *) malloc(global_N3_halo*sizeof(float)))) {
     printf("Problem...\n");
     exit(1);
   }
@@ -112,7 +112,7 @@ int main(int argc, char **argv){
     printf("Catalogue Mmin: %E Msun, Catalogue Mmax: %E Msun\n",cat_Mmin, cat_Mmax);
     printf("Catalogue Mmin in given mass range: %E Msun, Catalogue Mmax in given mass range: %E Msun\n",bin_Mmin, bin_Mmax);
     printf("Total number of halos in mass range: %ld, average number of halos per cell: %E\n",(long int)ntot, ntot/global_N3_halo);
-    printf("Number density: %E (h/Mpc)^3, dn/dm for given mass range: %E (h/Mpc)^3/Msun\n",ntot/global_L3,ntot/global_L3/(bin_Mmax-bin_Mmin));
+    printf("Number density: %E (h/Mpc)^3, dn/dm for given mass range: %E (h/Mpc)^3/Msun\n",ntot/global_L3,ntot/global_L3/(bin_Mmax-bin_Mmin)); fflush(0);
 
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(halo_map,global_N3_halo) private(i)
@@ -125,7 +125,7 @@ int main(int argc, char **argv){
       printf("\nError opening output box\n");
       return 0;
     }
-    elem=fwrite(halo_map,sizeof(double),global_N3_halo,fid);
+    elem=fwrite(halo_map,sizeof(float),global_N3_halo,fid);
     fclose(fid);
    
  exit(0);    

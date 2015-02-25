@@ -2,7 +2,8 @@
 /*********************************************************************************************************
 SimFast21
 Auxiliar code - 2014
-Description: Calculates halo dn/dm for a given halo catalogue
+Description: Calculates halo dn/dm for a given halo catalogue. Uses same bins and mass range as simulation.
+Also calculates theoretical mass function
 *********************************************************************************************************/
 
 /* --------------Includes ----------------------------------------- */

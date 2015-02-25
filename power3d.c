@@ -26,12 +26,14 @@ double wind(int j,int k,int p,int Nx,int Ny,int Nz, int flag);
 /*********************************************************************/
 int main(int argc, char **argv){
 
-  int N1, N2, N3;       /* number of pixels on the side */
+  long int N1, N2, N3;       /* number of pixels on the side */
+  int bsize;
   double dl, L1, L2, L3, k;     /* Mpc/h */
   long int i,j,p,indi, indj, nk, *nps, indk;
   FILE *fid_in;
-  double *map_in_f;
-  double dk, dk1, dk2, dk3, *map_in_d, *pwsp3d;
+  float *map_in_f;
+  double *map_in_d, *map_in_w;
+  double dk, dk1, dk2, dk3, *pwsp3d;
   double complex *map_out;
   fftw_plan pr2c;
   int flag;
@@ -40,15 +42,15 @@ int main(int argc, char **argv){
 
   /* dl is now size of cell */
 #ifdef _OMPTHREAD_
-  printf(" SYNTAX: power3df N1 N2 N3 dl flag input_file nthreads (output goes to standard output)\n\n");
-  if(argc != 8) exit(1);
-  nthreads=atoi(argv[7]);
+  printf("# SYNTAX: power3df Nbytes N1 N2 N3 dl flag input_file nthreads (output goes to standard output)\n\n");
+  if(argc != 9) exit(1);
+  nthreads=atoi(argv[8]);
   omp_set_num_threads(nthreads);
 #else
-  printf(" SYNTAX: power3df N1 N2 N3 dl flag input_file (output goes to standard output)\n\n");
-  if(argc != 7)  exit(1); 
+  printf("# SYNTAX: power3df Nbytes N1 N2 N3 dl flag input_file (output goes to standard output)\n\n");
+  if(argc != 8)  exit(1); 
 #endif
-  printf("The input file should have the following format: N3 is the fastest index, then N2, then N1 (e.g. the first set of numbers in the input binary file should be for N3 and so on...).\n dl is the cell size (the same in all directions)\n flag selects the window function: 0 - top hat, 1 - Bartlett, 2 - Welch\n");
+  printf("#\"Nbytes\" is the number of bytes of each value (e.g., 4 for float and 8 for double).\n# The input file should have the following format: N3 is the fastest index, then N2, then N1 (e.g. the first set of numbers in the input binary file should be for N3 and so on...).\n# dl is the cell size (the same in all directions). The k and P(k) will have units after dl.\n# flag selects the window function: 0 - top hat, 1 - Bartlett, 2 - Welch\n");
 
 #ifdef _OMPTHREAD_
   if(fftw_init_threads()==0) {
@@ -60,11 +62,12 @@ int main(int argc, char **argv){
   fftw_plan_with_nthreads(nthreads);
 #endif
 
-  N1=atoi(argv[1]);
-  N2=atoi(argv[2]);
-  N3=atoi(argv[3]);
-  dl=atof(argv[4]);
-  flag=atoi(argv[5]);
+  bsize=atoi(argv[1]);
+  N1=(long int)atoi(argv[2]);
+  N2=(long int)atoi(argv[3]);
+  N3=(long int)atoi(argv[4]);
+  dl=atof(argv[5]);
+  flag=atoi(argv[6]);
   L1=N1*dl;
   L2=N2*dl;
   L3=N3*dl;
@@ -83,18 +86,26 @@ int main(int argc, char **argv){
     pwsp3d[i]=0.;
   }
 
-  fid_in=fopen(argv[6],"rb");	
+  fid_in=fopen(argv[7],"rb");	
 
-  if(!(map_in_f=(double *) malloc(N1*N2*N3*sizeof(double)))) {
-    printf("Mem1 Problem...\n");
+  if(bsize==4) {
+    if(!(map_in_f=(float *) malloc(N1*N2*N3*sizeof(float)))) {
+      printf("Mem1 Problem...\n");
+      exit(1);
+    }
+    fread(map_in_f,bsize,N1*N2*N3,fid_in);
+  }
+  if(bsize==8) {
+    if(!(map_in_d=(double *) malloc(N1*N2*N3*sizeof(double)))) {
+      printf("Mem1 Problem...\n");
+      exit(1);
+    }
+    fread(map_in_d,bsize,N1*N2*N3,fid_in);
+  }
+  if(!(map_in_w=(double *) malloc(N1*N2*N3*sizeof(double)))) {
+    printf("Memory Problem...\n");
     exit(1);
   }
-  if(!(map_in_d=(double *) malloc(N1*N2*N3*sizeof(double)))) {
-    printf("Mem2 Problem...\n");
-    exit(1);
-  }
-
-  fread(map_in_f,sizeof(float),N1*N2*N3,fid_in);
 
   wsum=0.;
   for(i=0;i<N1;i++) {
@@ -104,29 +115,46 @@ int main(int argc, char **argv){
       }
     }
   }
+  printf("#sum: %E\n",wsum); fflush(0);
+
+  if(bsize==4) { 
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(map_in_d,map_in_f,N1,N2,N3) private(i,j,p)
+#pragma omp parallel for shared(map_in_w,map_in_f,N1,N2,N3) private(i,j,p)
 #endif
-  for(i=0;i<N1;i++) {
-    for(j=0;j<N2;j++) {
-      for(p=0;p<N3;p++) {
-	map_in_d[i*N2*N3+j*N3+p]=(double)map_in_f[i*N2*N3+j*N3+p]*wind(i,j,p,N1-1,N2-1,N3-1,flag);  /* .....apply window to patch */
+    for(i=0;i<N1;i++) {
+      for(j=0;j<N2;j++) {
+	for(p=0;p<N3;p++) {
+	  map_in_w[i*N2*N3+j*N3+p]=(double)map_in_f[i*N2*N3+j*N3+p]*wind(i,j,p,N1-1,N2-1,N3-1,flag);  /* .....apply window to patch */
+	}
       }
     }
+    free(map_in_f);
+  }
+  if(bsize==8) { 
+#ifdef _OMPTHREAD_
+#pragma omp parallel for shared(map_in_w,map_in_d,N1,N2,N3) private(i,j,p)
+#endif
+    for(i=0;i<N1;i++) {
+      for(j=0;j<N2;j++) {
+	for(p=0;p<N3;p++) {
+	  map_in_w[i*N2*N3+j*N3+p]=map_in_d[i*N2*N3+j*N3+p]*wind(i,j,p,N1-1,N2-1,N3-1,flag);  /* .....apply window to patch */
+	}
+      }
+    }
+    free(map_in_d);
   }
 
-  free(map_in_f);
   if(!(map_out = (double complex*) malloc(sizeof(double complex) * N1*N2*(N3/2+1)))) {
     printf("Mem3 Problem...\n");
     exit(1);
   }
-  if(!(pr2c=fftw_plan_dft_r2c_3d(N1, N2, N3, map_in_d, map_out, FFTW_ESTIMATE))) {
+  if(!(pr2c=fftw_plan_dft_r2c_3d(N1, N2, N3, map_in_w, map_out, FFTW_ESTIMATE))) {
     printf("FFT Problem...\n");
     exit(1);
   }
   fftw_execute(pr2c);
 
-
+  printf("#Now calculating power spectum\n");fflush(0);
   /* Calculate power */
   for(i=0;i<N1;i++) {
     if(i>N1/2) {
@@ -152,7 +180,7 @@ int main(int argc, char **argv){
 
   fftw_destroy_plan(pr2c);
   free(map_out);
-  free(map_in_d);
+  free(map_in_w);
   fclose(fid_in);
   exit(0);
 
