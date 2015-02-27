@@ -79,7 +79,7 @@ int main(int argc, char **argv){
    exit(1);
  }
  
- sprintf(fname, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L));
+ sprintf(fname, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble));
  /*Leitura do campo de densidades no espaco real*/
  fid=fopen(fname,"rb");	/* second argument contains name of input file */
  if (fid==NULL) {
@@ -130,7 +130,7 @@ int main(int argc, char **argv){
        if(kk>0){ 
 	 //Normalizacao pois a biblioteca fftw3 não tem dx nem global_dk nos integrais
 	 map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=I*(global_dk)*(1/(kk*kk))*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]*global_dx_halo*global_dx_halo*global_dx_halo/global_L3;  
-	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=indi*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p];  
+	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=indi*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]/global_hubble; /* to turn velocity from Mpc/h to Mpc */  
        }else{
 	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=0;
        }
@@ -145,7 +145,7 @@ int main(int argc, char **argv){
  
  printf("\nWriting v_x field to file...\n");fflush(0);
 
- sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L)); 
+ sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
  if((fid=fopen(fname,"wb"))==NULL){  
    printf("\nThe file cannot be open\n");
    return 0;
@@ -172,7 +172,7 @@ int main(int argc, char **argv){
        kk=global_dk*sqrt(indi*indi+indj*indj+p*p);	
        if(kk>0){ 
 	 //Normalizacao pois a biblioteca fftw3 não tem dx nem global_dk nos integrais
-	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=indj*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p];  
+	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=indj*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]/global_hubble;  
        }else{
 	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=0;
        }
@@ -187,7 +187,7 @@ int main(int argc, char **argv){
    
  printf("\nWriting v_y field to file...\n");fflush(0); 
  
- sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L)); 
+ sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
  if((fid=fopen(fname,"wb"))==NULL){  
    printf("\nThe file cannot be open\n");
    return 0;
@@ -214,7 +214,7 @@ int main(int argc, char **argv){
        kk=global_dk*sqrt(indi*indi+indj*indj+p*p);	
        if(kk>0){ 
 	 //Normalizacao pois a biblioteca fftw3 não tem dx nem global_dk nos integrais
-	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=p*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p];  
+	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=p*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]/global_hubble;  
        }else{
 	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=0;
        }
@@ -229,7 +229,7 @@ int main(int argc, char **argv){
    
  printf("\nWriting v_z field to file...\n");fflush(0);
  
- sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L)); 
+ sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
  if((fid=fopen(fname,"wb"))==NULL){  
    printf("\nThe file cannot be open\n");
    return 0;

@@ -125,6 +125,7 @@ void get_Simfast21_params(char *basedir){
   global_rho_b=global_omega_b*RHO_0/global_hubble;
   global_L=global_L*global_hubble;  /* Mpc/h */
   global_halo_Rmax=global_halo_Rmax*global_hubble;  /* Mpc/h */
+  if(global_halo_Rmax>global_L/2.0) global_halo_Rmax=global_L/2.0;
   global_bubble_Rmax=global_bubble_Rmax*global_hubble;  /* Mpc/h */
   global_flux_Rmax=global_flux_Rmax*global_hubble;  /* Mpc/h */
   global_L3=global_L*global_L*global_L;

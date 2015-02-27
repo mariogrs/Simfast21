@@ -4,7 +4,7 @@ SimFast21
 Desciption: This routines determines collapsed halos positions and masses
 from the linear density field. The barrier condition is given by Seth & Thoren modified version
 of the critical overdensity.
-Collapsed mass smaller than cell size determined using fcoll - this is experimental and requires further tests
+Halos with mass smaller than cell size determined using a subgrid method
 ******************************************************************************************************************/
 
 /* --------------Includes ----------------------------------------- */
@@ -21,6 +21,8 @@ Collapsed mass smaller than cell size determined using fcoll - this is experimen
 #include <sys/stat.h>
 #include <dirent.h>
 #include <gsl/gsl_sf_erf.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 #include "Input_variables.h"
 #include "auxiliary.h"
@@ -28,7 +30,10 @@ Collapsed mass smaller than cell size determined using fcoll - this is experimen
 
 
 int main(int argc, char **argv){
+
   
+  double nh_aver, dm, Raux, dndm_av, hbias, aux_norm, dndm, tempv;
+  long int Pnhalos, nhalos_z, nhalos_R;
   int nhalos_cat;
   fftwf_plan pc2r;
   fftwf_plan pr2c;
@@ -42,7 +47,7 @@ int main(int argc, char **argv){
   long int a,b,c;
   int flag;
   long int ncells1D;
-  long int ind, halos, halos3;
+  long int ind;
   long int index, indice;
   long int *halo_ind;
   char  *flag_halo;
@@ -51,18 +56,17 @@ int main(int argc, char **argv){
   double R_lim;
   Halo_t *halo_cat;
   float *map_in_f;
-  float *mass_fcoll;
   double sigma_aux;
   double kk;
   double R2,zz,x2,y2;
-  double sigma2,sigma_min2;
   char halo_filename[300];
   char dens_filename[300];
   char fname[256];
   DIR* dir;
   double zmax,zmin,dz;
-  double growth,R,cell_mass;
-  double fcoll;
+  double growth,R;
+  gsl_rng * rpoisson = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set (rpoisson, 0);
   
   if(argc == 1 || argc > 5) {
     printf("Generates Halo catalogs for a range of redshifts\n");
@@ -103,7 +107,7 @@ int main(int argc, char **argv){
     halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3);
     printf("Minimum mass for standard halo finding method (excursion set formalism) %E\n",halo_mass);
     if(halo_mass <= global_halo_Mmin+10.) {
-      printf("No need to do fcoll: resolution is enough for %E mass halos\n",global_halo_Mmin);
+      printf("No need to do subgridding: resolution is enough for %E mass halos\n",global_halo_Mmin);
       global_use_sgrid=0;
       R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
     }
@@ -133,7 +137,7 @@ int main(int argc, char **argv){
   }    
 
   /* Reading dark matter density box */
-  sprintf(dens_filename, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L));  
+  sprintf(dens_filename, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L/global_hubble));  
   fid_in=fopen(dens_filename,"rb");	/* second argument contains name of input file */
   if (fid_in==NULL) {
     printf("Error reading density file %s - check if the file exists...\n",dens_filename); 
@@ -171,23 +175,17 @@ int main(int argc, char **argv){
       exit(1);
     }
   }  
-  if(global_use_sgrid==1){
-    if(!(mass_fcoll=(float *) fftwf_malloc(global_N3_halo*sizeof(float)))) {    /* get memory for float map */
-      printf("Problem...\n");
-      exit(1);
-    }
-  } 
 
   /****************************************************/
   /********  Redshift cycle ********/
   printf("Redshift cycle...\n");fflush(0);
   for(redshift=zmax;redshift>(zmin-dz/10);redshift-=dz){
     
-    printf("z = %f\n",redshift);fflush(0);
-    sprintf(halo_filename, "%s/Halos/halo_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,global_L);
+    printf("\n\n\n +++++++++++++++++++++++++++ z = %f +++++++++++++++++++++++++++++++\n",redshift);fflush(0);
+    sprintf(halo_filename, "%s/Halos/halo_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
     fid_out=fopen(halo_filename,"rb");
     if(fid_out!=NULL) {
-      printf("File:%s already exists - skipping this redshift\n",halo_filename); 
+      printf("File:%s already exists - skipping this redshift\n",halo_filename); fflush(0);
       fclose(fid_out);
     }else {
 
@@ -196,21 +194,19 @@ int main(int argc, char **argv){
 #endif
     for(i=0;i<global_N3_halo;i++)  flag_halo[i]=0;
   
-    growth=getGrowth(redshift);
-        
-    sprintf(halo_filename, "%s/Halos/halo_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,global_L);
+    growth=getGrowth(redshift);        
+    sprintf(halo_filename, "%s/Halos/halo_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
     fid_out=fopen(halo_filename,"wb");
     if(fid_out==NULL){printf("\n Catalog file error\n"); exit (1);}
-    halos=0;  /* counts total halos for one box */
-    elem=fwrite(&halos,sizeof(long int),1,fid_out); /* reserve space for number of halos at beginning of file */    
+    nhalos_z=0;  /* counts total halos for one box */
+    elem=fwrite(&nhalos_z,sizeof(long int),1,fid_out); /* reserve space for number of halos at beginning of file */    
     R=R_lim*pow(global_Rhalo,(int)(log(global_halo_Rmax/R_lim)/log(global_Rhalo)))+R_lim/10000.;
-    halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R,3);
-
+    halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/global_Rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
 
     /**************** start halo cycle for one box ****************/
     while(R>=R_lim && halo_mass>=global_halo_Mmin){   
 
-      printf("R=%f  M=%E\n",R,halo_mass);fflush(0);
+      printf("\n\n----------------------------------------- R=%f  M=%E ----------------------------------------\n",R,halo_mass);fflush(0);
       R2=R*R;   
       sigma_aux=sigma(R);
       deltaCMZ=growth*deltaFilter(sigma_aux,growth);
@@ -234,21 +230,17 @@ int main(int argc, char **argv){
 	      /* 3d vector k (frequency) is just (indi, indj, p)*global_dk (global_dk is the moduli of the unit vector) */
 	      kk=global_dk*sqrt(indi*indi+indj*indj+p*p); 
 	      //map_in_aux[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=map_in[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]*W_filter(kk*R)*dx*dx*dx;
-	      *((fftwf_complex *)map_in_aux + (i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p))= *((fftwf_complex *)map_in + (i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p))*W_filter(kk*R)*global_dx_halo*global_dx_halo*global_dx_halo/global_L3*growth;  /* take care of all norms now */
-	      
+	      *((fftwf_complex *)map_in_aux + (i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p))= *((fftwf_complex *)map_in + (i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p))*W_filter(kk*R)*global_dx_halo*global_dx_halo*global_dx_halo/global_L3*growth;  /* take care of all norms now */	      
 	    }
 	  }
-	}
-	
+	}	
 	printf("Executing FFT to real space...\n");fflush(0);
       /* Executes FFT */
 	fftwf_execute(pc2r);  /* Inline transform - careful with output format... */
 	
-	halos3=0; /* halo count for one size */
-	
+	nhalos_R=0; /* halo count for one size R */	
 	ncells1D=(long int)(R/global_dx_halo);
 	if(ncells1D==0)ncells1D=1;      
-    
 	printf("Checking for halos and overlap...\n");fflush(0);
 	for(i=0;i<global_N_halo;i++){ 
 	  nhalos_cat=0;
@@ -282,76 +274,94 @@ int main(int argc, char **argv){
 		  }
 		}
 		if (flag==0){
-		  halos3++;
-		  halos++;
+		  nhalos_R++;
+		  nhalos_z++;
 		  for(indice=0;indice<ind;indice++)flag_halo[halo_ind[indice]]=1;
 		  halo_cat[nhalos_cat].x=i;
 		  halo_cat[nhalos_cat].y=j;
 		  halo_cat[nhalos_cat].z=p;
-		  halo_cat[nhalos_cat].Mass=halo_mass;
-		  halo_cat[nhalos_cat].Radius=R;
+		  halo_cat[nhalos_cat].Mass=halo_mass; /* mass in Msun */
+		  halo_cat[nhalos_cat].Radius=R/global_hubble; /* because R is in Mpc/h and we want output in Mpc */
 		  nhalos_cat++;
 		}	    
 	      }	
 	    }
 	  }
 	  if(nhalos_cat>0) elem=fwrite(halo_cat,sizeof(Halo_t),nhalos_cat,fid_out);
-	}    
-	printf("Number of halos for M=%E: %ld\n",halo_mass,halos3);fflush(0);
-	
-      }
+	}  
+	printf("Number of halos for M=%E: %ld\n",halo_mass, nhalos_R);fflush(0);	
+      } /* matches else for when sigma is low */
       R=R/global_Rhalo;
-      halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R,3);
-    }
-    rewind(fid_out);
-    elem=fwrite(&halos,sizeof(long int),1,fid_out);
-    fclose(fid_out); 
-    } /* main catalog file exists cycle */
-    printf("Number of halos without fcoll: %ld\n",halos);fflush(0);
+      //     halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R,3);
+      halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/global_Rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
+    } /* R cycle for excursion set */
+    printf("--------------- Number of halos without subgrid: %ld -----------------------\n\n",nhalos_z);fflush(0);  
 
+    
+    /************************************************/
+    /************************************************/
     /************************************************/
     if(global_use_sgrid==1){
-       sprintf(halo_filename, "%s/Halos/halo_fcoll_mass_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_halo,global_L);
-      fid_out=fopen(halo_filename,"rb");
-      if(fid_out!=NULL) {
-	printf("File:%s already exists - skipping this redshift\n",halo_filename); 
-	fclose(fid_out);
-      }else {
-	sprintf(halo_filename, "%s/Halos/halo_fcoll_mass_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_halo,global_L);
-	fid_out=fopen(halo_filename,"wb");
-	if(fid_out==NULL){printf("\n fcoll mass file error\n"); exit(1);}
-      }
-      R=0.620350491*global_dx_halo;
-      sigma2=sigma(R);
-      deltaCMZ=growth*deltaFilter(sigma2,growth);      
-      printf("R fcoll:%E deltaC(M;z)=%E G(z)=%E\n",R,deltaCMZ,growth);
-      cell_mass=global_rho_m*global_dx_halo*global_dx_halo*global_dx_halo;
-      sigma_min2=sigma(pow(global_halo_Mmin*3./4./PI/global_rho_m,1./3));
-      if(sigma2>=sigma_min2) {
-	printf("Warning: sig > sig_Mmin! sig_cell: %E  sig_min: %E   R_cell: %E  R_min: %E - skipping fcoll...\n",sigma2,sigma_min2,R,pow(global_halo_Mmin*3./4./PI/global_rho_m,1./3));
-	for(i=0;i<global_N3_halo;i++) mass_fcoll[i]=0.;
-      }else {
-	sigma2*=sigma2;
-	sigma_min2*=sigma_min2;
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(global_N3_halo,mass_fcoll,deltaCMZ,growth,map_in_f,sigma_min2,sigma2,cell_mass,flag_halo) private(i,fcoll)
-#endif  
-	for(i=0;i<global_N3_halo;i++) {
-	  if(flag_halo[i]==0) {
-	    if(map_in_f[i]>deltaCMZ/growth) {
-	      //printf("Warning: fcoll>1! delta:%E delta_c:%E\n",map_in_f[i],deltaCMZ/growth);
-	      fcoll=1.0;
-	    } else fcoll=gsl_sf_erfc((deltaCMZ/growth-map_in_f[i])/sqrt(2*(sigma_min2-sigma2)));
-	    if(fcoll>1.001){
-	      printf("\n error calculating fcoll=%E \n\n\n", fcoll);
+      while (halo_mass >= global_halo_Mmin) {
+	printf("halo mass=%E\n", halo_mass); fflush(0);
+	dm=(4.0/3.0)*PI*global_rho_m*(pow(R,3)-pow(R/global_Rhalo,3));  /* mass interval */
+        Raux=pow(3./4/PI/global_rho_m*halo_mass, 1.0/3);
+	sigma_aux = sigma(Raux); /* dR/2 ? */         
+	dndm_av = mass_function_ST(redshift, halo_mass)*dm*pow(global_dx_halo,3);  /* mass_function_ST in 1/Msun/(Mpc/h)^3 - comoving volume */
+	hbias = Bias(redshift, sigma_aux);
+	nh_aver=0.0;
+
+	for (index = 0; index < global_N3_halo; index++) {
+	  if(flag_halo[index]==0) {
+	    tempv=map_in_f[index]*growth*hbias;
+	    if(tempv>6.0) {
+	      nh_aver=nh_aver+(1.0+tempv);
+	    }else if (tempv>-4.0) {
+	      nh_aver=nh_aver+exp(tempv);
 	    }
-	    mass_fcoll[i]=fcoll*cell_mass;
-	  } else mass_fcoll[i]=0.;    
+	  }
 	}
-      }
-      elem=fwrite(mass_fcoll,sizeof(float),global_N3_halo,fid_out);      
-      fclose(fid_out); 
-    } /* if fcoll */
+	aux_norm=1.0/(nh_aver/(1.0*global_N3_halo));
+	for (i = 0; i < global_N_halo; i++) {
+	  for (j = 0; j < global_N_halo; j++) {
+	    nhalos_cat=0;
+	    for (p = 0; p < global_N_halo; p++) {
+	      index = i * global_N_halo * global_N_halo + j * global_N_halo + p;                      
+	      if(flag_halo[index]==0) {
+		tempv=map_in_f[index]*growth*hbias;
+		if (tempv>-4.0) {
+		  if(tempv>6.0) {
+		    dndm=dndm_av*(1.0+tempv)*aux_norm;
+		  }else {
+		    dndm=dndm_av*exp(tempv)*aux_norm;
+		  }
+		  Pnhalos = (long int) (gsl_ran_poisson(rpoisson,dndm));                       
+		  for (ii = 0; ii < Pnhalos; ii++) {
+		    halo_cat[nhalos_cat].x=i;
+		    halo_cat[nhalos_cat].y=j;
+		    halo_cat[nhalos_cat].z=p;
+		    halo_cat[nhalos_cat].Mass=halo_mass;
+		    halo_cat[nhalos_cat].Radius=R/global_hubble; /* in Mpc */
+		    nhalos_cat++;
+		    nhalos_z++;
+		  }
+		}
+	      }
+	    }
+	    if(nhalos_cat>0) elem=fwrite(halo_cat, sizeof(Halo_t), nhalos_cat, fid_out);
+	  }
+	}
+	R = R/global_Rhalo; 
+	halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/global_Rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
+      }        
+    } /* subgrid cycle */
+    printf("----------------------------- Number of halos including subgrid: %ld ---------------------- \n\n", nhalos_z);   fflush(0);
+    rewind(fid_out);
+    elem=fwrite(&nhalos_z,sizeof(long int),1,fid_out);
+    fclose(fid_out);       
+    
+    } /* ends box cycle */
+
     /************************************************/
   } /* ends redshift cycle */
       

@@ -67,10 +67,10 @@ int main(int argc, char **argv){
     if(mass < Mmin) Mmin=mass;
   }
   dlm=3*log10(global_Rhalo);
-  printf("Mmax: %E    Mmin: %E     dlm: %E\n", Mmax, Mmin, dlm);
+  printf("# Mmax: %E    Mmin: %E     dlm: %E\n", Mmax, Mmin, dlm);
   Mup=Mmax*pow(global_Rhalo,3);
   N=(int)roundf((log10(Mup)-log10(Mmin))/dlm)+1;
-  printf("N: %d\n", N);
+  printf("# N: %d\n", N);
   ntot=0;
   for(i=0;i<N;i++) dndm[i]=0.0;
   for(i=0;i<nhalos;i++){

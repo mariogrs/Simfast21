@@ -78,7 +78,7 @@ int main(int argc, char **argv){
     printf("Problem...\n");
     exit(1);
   }
-  sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L)); 
+  sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading X velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realx,sizeof(float),global_N3_halo,fid);
@@ -87,7 +87,7 @@ int main(int argc, char **argv){
     printf("Problem...\n");
     exit(1);
   }
-  sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L)); 
+  sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading Y velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realy,sizeof(float),global_N3_halo,fid);
@@ -96,7 +96,7 @@ int main(int argc, char **argv){
     printf("Problem...\n");
     exit(1);
   }
-  sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L)); 
+  sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading Z velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realz,sizeof(float),global_N3_halo,fid);
@@ -106,9 +106,9 @@ int main(int argc, char **argv){
 #endif  
   //Calculo do campo de deslocamento linear
   for(i=0;i<(global_N3_halo);i++) {
-    map_veloc_realx[i]*=(global_N_halo/global_L);
-    map_veloc_realy[i]*=(global_N_halo/global_L);
-    map_veloc_realz[i]*=(global_N_halo/global_L);
+    map_veloc_realx[i]*=(global_N_halo/global_L)*global_hubble;  /* correct for the fact that now the velocity in file is in Mpc not Mpc/h */
+    map_veloc_realy[i]*=(global_N_halo/global_L)*global_hubble;
+    map_veloc_realz[i]*=(global_N_halo/global_L)*global_hubble;
   }
   printf("Velocity Reading done...\n"); fflush(0);   
   
@@ -130,7 +130,7 @@ int main(int argc, char **argv){
     growth=getGrowth(redshift)-getGrowth(300);
     
     /* read halo catalog */
-    sprintf(fname, "%s/Halos/halo_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,global_L);
+    sprintf(fname, "%s/Halos/halo_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
     if((fid=fopen(fname,"rb"))==NULL){  
       printf("Halo file: %s does not exist... Check path or run get_halos for this configuration\n",fname);
       exit(1);
@@ -168,7 +168,7 @@ int main(int argc, char **argv){
     printf("Collapsed box...\n");fflush(0);
     get_collapsed_mass_box(halo_map,halo_v, nhalos);
     if(global_save_nl_halo_cat==1){
-      sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,global_L); 
+      sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble)); 
       if((fid=fopen(fname,"wb"))==NULL){  
 	printf("\nError opening Halonl output catalog\n");
 	return 0;
@@ -180,7 +180,7 @@ int main(int argc, char **argv){
     
     if(global_use_sgrid==1){
       printf("Reading fcoll...\n");fflush(0);
-      sprintf(fname, "%s/Halos/halo_fcoll_mass_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_halo,global_L);
+      sprintf(fname, "%s/Halos/halo_fcoll_mass_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_halo,global_L/global_hubble);
       fid=fopen(fname,"rb");
       if(fid==NULL) printf("File:%s is missing - proceeding without fcoll mass...\n",fname);
       else {
@@ -219,7 +219,7 @@ int main(int argc, char **argv){
     } /* ends fcoll*/
 
     printf("Writing box...\n");fflush(0);
-    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L); 
+    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     if((fid=fopen(fname,"wb"))==NULL){  
       printf("\nError opening Halonl output box\n");
       return 0;
