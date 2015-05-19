@@ -12,7 +12,7 @@ SimFast21
 /*-----------Type def for Halo information----------------------------------*/
 typedef struct Halo_t_
 {
-  float Mass,Radius;
+  float Mass;
   int x,y,z;
 } Halo_t;
 

@@ -142,7 +142,7 @@ int main(int argc, char **argv){
   /*********** Redshift cycle ********************************************/
   for(redshift=zmax;redshift>(zmin-dz/10.);redshift-=dz){
     
-    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,(int)(global_L/global_hubble)); 
+    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%d.dat",argv[1],redshift,global_N_smooth,(int)(global_L/global_hubble)); 
     if((fid=fopen(fname,"rb"))!=NULL){  
       printf("File %s already exists - skipping...\n",fname);
       fclose(fid);
@@ -179,16 +179,16 @@ int main(int argc, char **argv){
       printf("Smoothing...\n");fflush(0);   
       smooth_boxb(map_out, map_out2, global_N_halo, global_N_smooth);
       printf("Writing...\n");fflush(0);   
-      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,(int)(global_L/global_hubble)); 
+      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%d.dat",argv[1],redshift,global_N_smooth,(int)(global_L/global_hubble)); 
       if((fid=fopen(fname,"wb"))==NULL){  
-	printf("\nError opening outpout nl_density file... Check path...\n");
+	printf("\nError opening output nl_density file... Check path...\n");
 	exit(1);
       } 
       elem=fwrite(map_out2,sizeof(float),global_N3_smooth,fid);                    
       fclose(fid);
     
       if(global_save_original_deltanl==1){
-	sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_halo,(int)(global_L/global_hubble)); 
+	sprintf(fname, "%s/delta/deltanl_o_z%.3f_N%ld_L%d.dat",argv[1],redshift,global_N_halo,(int)(global_L/global_hubble)); 
 	if((fid=fopen(fname,"wb"))==NULL){  
 	  printf("\nError opening output nl_density file... Check path...\n");
 	  exit(1);

@@ -61,6 +61,7 @@ double global_halo_Rmax;
 double global_halo_Rmin_dx;
 double global_halo_Mmin;
 double global_Rhalo;
+int global_Nhbins;
 
 
 
