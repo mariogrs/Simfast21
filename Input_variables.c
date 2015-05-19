@@ -80,7 +80,7 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"halo_Rmax")==0)global_halo_Rmax=atof(third);
       else if(strcmp(first,"halo_Rmin_dx")==0)global_halo_Rmin_dx=atof(third);
       else if(strcmp(first,"halo_Mmin")==0)global_halo_Mmin=atof(third);
-      else if(strcmp(first,"halo_step")==0)global_Rhalo=atof(third);
+      else if(strcmp(first,"halo_Nbins")==0)global_Nhbins=atoi(third);
 
       /* Ionization */
       else if(strcmp(first,"Ion_eff")==0)global_eff=atof(third);
@@ -125,7 +125,9 @@ void get_Simfast21_params(char *basedir){
   global_rho_b=global_omega_b*RHO_0/global_hubble;
   global_L=global_L*global_hubble;  /* Mpc/h */
   global_halo_Rmax=global_halo_Rmax*global_hubble;  /* Mpc/h */
+  if(global_halo_Rmax>global_L/2.0) global_halo_Rmax=global_L/2.0;
   global_bubble_Rmax=global_bubble_Rmax*global_hubble;  /* Mpc/h */
+  if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.;
   global_flux_Rmax=global_flux_Rmax*global_hubble;  /* Mpc/h */
   global_L3=global_L*global_L*global_L;
   global_dk=2*PI/global_L;
@@ -136,8 +138,6 @@ void get_Simfast21_params(char *basedir){
   global_smooth_factor=global_N_halo/global_N_smooth;
   global_Zminsim=global_Zmaxsim-global_Dzsim*(double)ceil((global_Zmaxsim-global_Zminsim)/global_Dzsim); /* Make sure we include files for global_Zminsim */
   global_Zminsfr=global_Zmaxsim-global_Dzsim*(double)ceil((global_Zmaxsim-global_Zminsfr)/global_Dzsim);
-  if(global_halo_Rmax > global_L/2.) global_halo_Rmax=global_L/2.;
-  if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.;
 
   //  print_parms();
 
@@ -238,7 +238,7 @@ void print_parms(void) {
   printf("global_rho_b: %E\n",global_rho_b);
 
   /*------------------------Halo collapse parameters-----------------------------*/
-  printf("global_Rhalo: %f\n",global_Rhalo);
+  printf("global_halo_Nbins: %f\n",global_Nhbins);
   printf("global_use_sgrid: %d\n",global_use_sgrid);
   printf("global_delta_c: %f\n",global_delta_c);
   printf("global_STa: %f\n",global_STa);

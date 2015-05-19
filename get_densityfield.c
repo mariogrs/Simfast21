@@ -4,6 +4,7 @@ SimFast21
 Name: get_densityfield										     
 Description: This routines generates a Monte Carlo realization of the linear density field 
 normalized by the matter power spectrum form the Eisenstein&Hu fitting formulae (or CAMB) at z=0
+Output: delta at z=0 (not the density but the fluctutation: density/average-1
 ****************************************************************************************************/
 
 #include <math.h>
@@ -225,7 +226,7 @@ int main(int argc, char **argv){
     }
   }
   printf("Writting density field...\n");fflush(0);
-  sprintf(fname, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L));  
+  sprintf(fname, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L/global_hubble));   /* Use units for file name in Mpc... */
   file_out=fopen(fname,"wb");
   if (file_out==NULL) {
     printf("\n Problem opening the delta output file:%s\n",fname); 

@@ -37,7 +37,8 @@ int main(int argc, char **argv){
   char fname[300];
   double zmin,zmax,dz;
   double growth;
- 
+  float *map_in;
+
 
   if(argc==1 || argc > 5) {
     printf("Nonlinear corrections to halo catalog + generates halo mass box\n");
@@ -69,54 +70,22 @@ int main(int argc, char **argv){
 #endif
 
 
- 
-  /**********************************************************************************/
-  /*************  Read velocity fields for nonlinear corrections  *************/
-
-  printf("Reading Velocity...\n"); fflush(0);   
-  if(!(map_veloc_realx=(float *) malloc(global_N3_halo*sizeof(float)))) {  /* get memory for output values in double */
-    printf("Problem...\n");
-    exit(1);
-  }
-  sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
-  fid=fopen(fname,"rb");	/* second argument contains name of input file */
-  if (fid==NULL) {printf("\nError reading X velocity file... Check path or if the file exists..."); exit (1);}
-  elem=fread(map_veloc_realx,sizeof(float),global_N3_halo,fid);
-  fclose(fid);
-  if(!(map_veloc_realy=(float *) malloc(global_N3_halo*sizeof(float)))) {  /* get memory for output values in double */
-    printf("Problem...\n");
-    exit(1);
-  }
-  sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
-  fid=fopen(fname,"rb");	/* second argument contains name of input file */
-  if (fid==NULL) {printf("\nError reading Y velocity file... Check path or if the file exists..."); exit (1);}
-  elem=fread(map_veloc_realy,sizeof(float),global_N3_halo,fid);
-  fclose(fid);
-  if(!(map_veloc_realz=(float *) malloc(global_N3_halo*sizeof(float)))) {  /* get memory for output values in double */
-    printf("Problem...\n");
-    exit(1);
-  }
-  sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
-  fid=fopen(fname,"rb");	/* second argument contains name of input file */
-  if (fid==NULL) {printf("\nError reading Z velocity file... Check path or if the file exists..."); exit (1);}
-  elem=fread(map_veloc_realz,sizeof(float),global_N3_halo,fid);
-  fclose(fid);
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(map_veloc_realx,map_veloc_realy,map_veloc_realz,global_N_halo,global_N3_halo,global_L) private(i)
-#endif  
-  //Calculo do campo de deslocamento linear
-  for(i=0;i<(global_N3_halo);i++) {
-    map_veloc_realx[i]*=(global_N_halo/global_L)*global_hubble;  /* correct for the fact that now the velocity in file is in Mpc not Mpc/h */
-    map_veloc_realy[i]*=(global_N_halo/global_L)*global_hubble;
-    map_veloc_realz[i]*=(global_N_halo/global_L)*global_hubble;
-  }
-  printf("Velocity Reading done...\n"); fflush(0);   
-  
+   
   if(!(halo_map=(float *) malloc(global_N3_smooth*sizeof(float)))) {
     printf("Problem...\n");
     exit(1);
   }
-  
+
+  if(!(map_in=(float *) malloc(global_N3_halo*sizeof(float)))) { 
+    printf("Problem...\n");
+    exit(1);
+  }
+
+  sprintf(fname, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L/global_hubble));  
+  fid=fopen(fname,"rb");	
+  if (fid==NULL){printf("\nError reading density file... Check if the file exists...\n"); exit (1);}
+  elem=fread(map_in,sizeof(float),global_N3_halo,fid);
+  fclose(fid);
 
   printf("global_save_nl_halo_cat=%d\n",global_save_nl_halo_cat);
    
@@ -144,11 +113,6 @@ int main(int argc, char **argv){
     elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);  
     fclose(fid);
     
-    
-    printf("Adjusting...\n");fflush(0);
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(nhalos,halo_v,map_veloc_realx,map_veloc_realy,map_veloc_realz,global_N_halo) private(i,indice,x,y,z)
-#endif  
     for(i=0;i<nhalos;i++){
       x= halo_v[i].x;     
       y= halo_v[i].y;  

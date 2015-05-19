@@ -32,7 +32,7 @@ int main(int argc, char **argv){
   double mass;
   long int index, i;
   double Mmin, Mmax, cat_Mmin, cat_Mmax, bin_Mmin, bin_Mmax; 
-  double ntot,sim_Mmax,sim_Mmin;
+  double ntot,sim_Mmax,sim_Mmin, R_lim, R, halo_mass;
 
   if(argc!=6) {
     printf("\nCalculates halo number density fluctuations in a box for a given mass range. Ouputs a box of NxNxN floats.\n");
@@ -49,6 +49,34 @@ int main(int argc, char **argv){
   printf("Using %d threads\n",global_nthreads);
 #endif
 
+
+  if(global_halo_Rmin_dx < 2) {
+    printf("Warning: \"halo_Rmin_dx\" is quite small - this might have resolution effects on the standard halo finding excursion set formalism\n");
+    R_lim=0.620350491*global_dx_halo;
+  }else {
+    R_lim=global_halo_Rmin_dx*global_dx_halo;
+  }
+  halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3);
+  printf("Minimum mass for standard halo finding method (excursion set formalism): %E\n",halo_mass);
+  if(global_use_sgrid==1){
+    if(halo_mass <= global_halo_Mmin+10.) {
+      printf("No need to do subgridding: resolution is enough for %E mass halos\n",global_halo_Mmin);
+      global_use_sgrid=0;
+      R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
+    }
+  }else {
+    if(halo_mass > global_halo_Mmin) {
+      printf("Warning - minimum mass for simulation is larger than halo_Mmin: you need to use subgrid.\n");
+    } else R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
+  }
+  if(global_use_sgrid==1)
+    R=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
+  else
+    R=R_lim;
+  global_Rhalo=exp(log(global_halo_Rmax/R)/global_Nhbins);
+
+
+  
   Mmin=atof(argv[3]);
   Mmax=atof(argv[4]);
   sprintf(fname, "%s/Halos/%s",argv[1],argv[2]);
