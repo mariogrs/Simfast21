@@ -36,31 +36,18 @@ int main(int argc, char **argv){
   float *halo_mass;
   double zmin,zmax,dz,redshift;
   
-  if(argc==1 || argc > 5) {
+  if(argc !=2) {
     printf("Generates SFRD using nonlinear halo boxes\n");
-    printf("usage: get_SFR base_dir [zmin] [zmax] [dz]\n");
+    printf("usage: get_SFR base_dir\n");
     printf("base_dir contains simfast21.ini\n");
     exit(1);
   }  
   get_Simfast21_params(argv[1]);
   if(global_use_Lya_xrays==0) {printf("Lya and xray use set to false - no need to calculate SFR\n");exit(0);}
-  if(argc > 2) {
-    zmin=atof(argv[2]);
-    if (zmin < global_Zminsfr) zmin=global_Zminsfr;
-    if(argc > 3) {
-      zmax=atof(argv[3]);
-      if(zmax>global_Zmaxsim) zmax=global_Zmaxsim;
-      if(argc==5) dz=atof(argv[4]); else dz=global_Dzsim;
-    }else {
-      zmax=global_Zmaxsim;
-      dz=global_Dzsim;
-    }
-    zmin=zmax-dz*ceil((zmax-zmin)/dz); /* make sure (zmax-zmin)/dz is an integer so that we get same redshifts starting from zmin or zmax...*/ 
-  }else {
-    zmin=global_Zminsfr;
-    zmax=global_Zmaxsim;
-    dz=global_Dzsim;
-  }
+  zmin=global_Zminsfr;
+  zmax=global_Zmaxsim;
+  dz=global_Dzsim;
+  
   printf("\nCalculating SFRD between z=%f and z=%f with step %f\n",zmin,zmax,dz);
 #ifdef _OMPTHREAD_
   omp_set_num_threads(global_nthreads);

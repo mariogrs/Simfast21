@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
   /* Check for correct number of parameters*/
   if (argc != 2) {
     printf("Usage : xc base_dir\n");
-    exit(0);
+    exit(1);
   }
   get_Simfast21_params(argv[1]);
   if(global_use_Lya_xrays==0) {printf("Lya and xray use set to false - no need to calculate xc\n");exit(0);}

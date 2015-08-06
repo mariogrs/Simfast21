@@ -35,30 +35,17 @@ int main(int argc, char **argv){
   char fname[300];
   double zmin,zmax,dz;
 
-  if(argc == 1 || argc > 5) {
+  if(argc != 2) {
     printf("Generates non-linear density boxes for a range of redshifts\n");
-    printf("usage: get_nldensity base_dir [zmin] [zmax] [dz]\n");
+    printf("usage: get_nldensity base_dir\n");
     printf("base_dir contains simfast21.ini and directory structure\n");
     exit(1);
   }  
   get_Simfast21_params(argv[1]);
-  if(argc > 2) {
-    zmin=atof(argv[2]);
-    if (zmin < global_Zminsim) zmin=global_Zminsim;
-    if(argc > 3) {
-      zmax=atof(argv[3]);
-      if(zmax>global_Zmaxsim) zmax=global_Zmaxsim;
-      if(argc==5) dz=atof(argv[4]); else dz=global_Dzsim;
-    }else {
-      zmax=global_Zmaxsim;
-      dz=global_Dzsim;
-    }
-    zmin=zmax-dz*ceil((zmax-zmin)/dz); /* make sure (zmax-zmin)/dz is an integer so that we get same redshifts starting from zmin or zmax...*/ 
-  }else {
-    zmin=global_Zminsim;
-    zmax=global_Zmaxsim;
-    dz=global_Dzsim;
-  }
+  zmin=global_Zminsim;
+  zmax=global_Zmaxsim;
+  dz=global_Dzsim;
+ 
 #ifdef _OMPTHREAD_
   omp_set_num_threads(global_nthreads);
   printf("Using %d threads\n",global_nthreads);
@@ -102,7 +89,7 @@ int main(int argc, char **argv){
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(map_veloc_realx,map_veloc_realy,map_veloc_realz,global_N_halo,global_N3_halo,global_L) private(ind)
 #endif  
-  //Calculo do campo de deslocamento linear
+  // Linear displacement field...
   for(ind=0;ind<global_N3_halo;ind++) {
     map_veloc_realx[ind]*=(global_N_halo/global_L)*global_hubble;  /* correct for the fact that now the velocity in file is in Mpc not Mpc/h */
     map_veloc_realy[ind]*=(global_N_halo/global_L)*global_hubble;

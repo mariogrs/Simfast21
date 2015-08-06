@@ -33,6 +33,7 @@ int main(int argc, char **argv){
   long int index, i;
   double Mmin, Mmax, cat_Mmin, cat_Mmax, bin_Mmin, bin_Mmax; 
   double ntot,sim_Mmax,sim_Mmin, R_lim, R, halo_mass;
+  double rhalo;
 
   if(argc!=6) {
     printf("\nCalculates halo number density fluctuations in a box for a given mass range. Ouputs a box of NxNxN floats.\n");
@@ -73,7 +74,7 @@ int main(int argc, char **argv){
     R=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
   else
     R=R_lim;
-  global_Rhalo=exp(log(global_halo_Rmax/R)/global_Nhbins);
+  rhalo=exp(log(global_halo_Rmax/R)/global_Nhbins);
 
 
   
@@ -136,7 +137,7 @@ int main(int argc, char **argv){
       printf("No halos found in mass range. Exiting...\n");
       exit(1);
     }
-    bin_Mmax=bin_Mmax*pow(global_Rhalo,3); /* adjust mass interval due to mass resolution */
+    bin_Mmax=bin_Mmax*pow(rhalo,3); /* adjust mass interval due to mass resolution */
     printf("Catalogue Mmin: %E Msun, Catalogue Mmax: %E Msun\n",cat_Mmin, cat_Mmax);
     printf("Catalogue Mmin in given mass range: %E Msun, Catalogue Mmax in given mass range: %E Msun\n",bin_Mmin, bin_Mmax);
     printf("Total number of halos in mass range: %ld, average number of halos per cell: %E\n",(long int)ntot, ntot/global_N3_halo);

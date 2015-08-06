@@ -621,7 +621,7 @@ float *smooth_boxb(float *box, float *box_smoothed, long int N, long int Ns) {
 }
 
 
-
+/* This divides the halo mass for all the cells that were used initially to find the halo - it shouldn't be used */
 void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos){
   
   long int ii,ij,ik, ii_c,ij_c, ik_c, a, b, c;
@@ -635,15 +635,12 @@ void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos){
   for (ii=0;ii<global_N3_smooth;ii++) halo_box[ii]=0.;
 
   for(il=0;il<nhalos;il++) {
-
     Radius=pow(halo[il].Mass/(4.0/3*PI*global_rho_m),1.0/3);
     ii_c=(long int)((halo[il].x)/global_smooth_factor); 
     ij_c=(long int)((halo[il].y)/global_smooth_factor);
     ik_c=(long int)((halo[il].z)/global_smooth_factor);
-  
     ncells_1D=(long int)(Radius/global_dx_smooth);
-    if(ncells_1D==0)ncells_1D=1;
-        
+    if(ncells_1D==0)ncells_1D=1;   
     ncells_3D=0;
     for(ii=-(ncells_1D+1);ii<=ncells_1D+1;ii++){
       for(ij=-(ncells_1D+1);ij<=ncells_1D+1;ij++){
@@ -651,8 +648,7 @@ void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos){
 	  if((ii*ii+ij*ij+ik*ik)*global_dx_smooth*global_dx_smooth <= Radius*Radius)ncells_3D++;
 	}
       }
-    }
-    
+    }    
     for(ii=-(ncells_1D+1);ii<=ncells_1D+1;ii++){
       a=ii_c+ii;
       a=check_borders(a,global_N_smooth);
@@ -668,13 +664,13 @@ void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos){
 	}
       }
     }
-
   }
 
 }
 
 
 
+/* This assumes that all halos are smaller than cell size and so all its mass should be in the central cell */
 void get_collapsed_mass_boxb(float* halo_box,Halo_t *halo, long int nhalos){
   
   long int i,j,p;

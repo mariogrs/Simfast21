@@ -60,7 +60,6 @@ double global_STc;
 double global_halo_Rmax;
 double global_halo_Rmin_dx;
 double global_halo_Mmin;
-double global_Rhalo;
 int global_Nhbins;
 
 
@@ -68,7 +67,7 @@ int global_Nhbins;
 /*------------------------Ionization parameters-----------------------------*/
 double global_eff; //Efficiency parameter for determination of the ionization field
 double global_bubble_Rmax;
-
+int global_bubble_Nbins;
 
 /*----------Variables for reading matter power spectrum from file-------- */
 

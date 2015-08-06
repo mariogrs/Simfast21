@@ -33,6 +33,7 @@ int main(int argc, char **argv){
 
   
   double nh_aver, dm, mass_aux, dndm_av, hbias, dndm, tempv;
+  double rhalo;
   long int nhalos_z, nhalos_R;
   double Pnhalos;
   int nhalos_cat, nn;
@@ -69,32 +70,18 @@ int main(int argc, char **argv){
   gsl_rng * rpoisson = gsl_rng_alloc (gsl_rng_taus);
   gsl_rng_set (rpoisson, 0);
   
-  if(argc == 1 || argc > 5) {
+  if(argc != 2) {
     printf("Generates Halo catalogs for a range of redshifts\n");
-    printf("Usage: get_halos work_dir [zmin] [zmax] [dz]\n");
+    printf("Usage: get_halos work_dir\n");
     printf("work_dir - directory containing simfast21.ini \n");
     exit(1);
   }  
   get_Simfast21_params(argv[1]);
   //  print_parms();
   
-  if(argc > 2) {
-    zmin=atof(argv[2]);
-    if (zmin < global_Zminsim) zmin=global_Zminsim;
-    if(argc > 3) {
-      zmax=atof(argv[3]);
-      if(zmax>global_Zmaxsim) zmax=global_Zmaxsim;
-      if(argc==5) dz=atof(argv[4]); else dz=global_Dzsim;
-    }else {
-      zmax=global_Zmaxsim;
-      dz=global_Dzsim;
-    }
-    zmin=zmax-dz*ceil((zmax-zmin)/dz); /* make sure (zmax-zmin)/dz is an integer so that we get same redshifts starting from zmin or zmax...*/ 
-  }else {
-    zmin=global_Zminsim;
-    zmax=global_Zmaxsim;
-    dz=global_Dzsim;
-  }
+  zmin=global_Zminsim;
+  zmax=global_Zmaxsim;
+  dz=global_Dzsim;
     
 #ifdef _OMPTHREAD_
   omp_set_num_threads(global_nthreads);
@@ -105,7 +92,8 @@ int main(int argc, char **argv){
 
   if(global_halo_Rmin_dx < 2) {
     printf("Warning: \"halo_Rmin_dx\" is quite small - this might have resolution effects on the standard halo finding excursion set formalism\n");
-    R_lim=0.620350491*global_dx_halo;
+    R_lim=1.0*global_dx_halo;
+    //    R_lim=0.620350491*global_dx_halo;
   }else {
     R_lim=global_halo_Rmin_dx*global_dx_halo;
   }
@@ -126,8 +114,8 @@ int main(int argc, char **argv){
     R=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
   else
     R=R_lim;
-  global_Rhalo=exp(log(global_halo_Rmax/R)/global_Nhbins);
-  printf("%f  %f  %f  %f  %f  %d\n",global_halo_Rmax, global_L,R, R_lim, global_Rhalo, global_Nhbins); fflush(0);
+  rhalo=exp(log(global_halo_Rmax/R)/global_Nhbins);
+  //  printf("%f  %f  %f  %f  %f  %d\n",global_halo_Rmax, global_L,R, R_lim, rhalo, global_Nhbins); fflush(0);
   
   if(!(halo_cat=(Halo_t *) fftwf_malloc(global_N_halo*global_N_halo*sizeof(Halo_t)))) {    /* get memory for float map */
     printf("Memory problem: halo_cat\n");
@@ -216,7 +204,7 @@ int main(int argc, char **argv){
     nhalos_z=0;  /* counts total halos for one box */
     elem=fwrite(&nhalos_z,sizeof(long int),1,fid_out); /* reserve space for number of halos at beginning of file */    
     R=global_halo_Rmax;
-    halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/global_Rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
+    halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
  
     /**************** start halo cycle for one box ****************/
     while(R>=R_lim && halo_mass>=global_halo_Mmin){   
@@ -305,8 +293,8 @@ int main(int argc, char **argv){
 	}  
 	printf("Number of halos for M=%E: %ld\n",halo_mass, nhalos_R);fflush(0);	
       } /* matches else for when sigma is low */
-      R=R/global_Rhalo;
-      halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/global_Rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
+      R=R/rhalo;
+      halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
     } /* R cycle for excursion set */
     printf("--------------- Number of halos without subgrid: %ld -----------------------\n\n",nhalos_z);fflush(0);  
 
@@ -319,7 +307,7 @@ int main(int argc, char **argv){
 	printf("\n\n----------------------------------------- subgrid halo mass=%E -----------------------------------\n", halo_mass); fflush(0);
 	mass_aux=(4.0/3.0)*PI*global_rho_m*pow(R,3);
 	nhalos_R=0;
-	dm=(4.0/3.0)*PI*global_rho_m*(pow(R,3)-pow(R/global_Rhalo,3));  /* mass interval */
+	dm=(4.0/3.0)*PI*global_rho_m*(pow(R,3)-pow(R/rhalo,3));  /* mass interval */
 	sigma_aux = sigma(R);   
 	dndm_av = mass_function_ST(redshift, mass_aux)*dm*pow(global_dx_halo,3);  /* mass_function_ST in 1/Msun/(Mpc/h)^3 - comoving volume */
 	hbias = Bias(redshift, sigma_aux);
@@ -344,8 +332,8 @@ int main(int argc, char **argv){
 	    if(nhalos_cat>0) elem=fwrite(halo_cat, sizeof(Halo_t), nhalos_cat, fid_out);
 	  }
 	}
-	R = R/global_Rhalo; 
-	halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/global_Rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
+	R = R/rhalo; 
+	halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
 	printf("Number of halos for M=%E: %ld\n",halo_mass, nhalos_R);fflush(0);	
       }        
       printf("----------------------------- Total number of halos including subgrid: %ld ---------------------- \n\n", nhalos_z);   fflush(0);

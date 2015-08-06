@@ -85,6 +85,7 @@ void get_Simfast21_params(char *basedir){
       /* Ionization */
       else if(strcmp(first,"Ion_eff")==0)global_eff=atof(third);
       else if(strcmp(first,"bubble_Rmax")==0)global_bubble_Rmax=atof(third);
+      else if(strcmp(first,"bubble_Nbins")==0)global_bubble_Nbins=atoi(third);
 
       /* xray + Lya */
       else if(strcmp(first,"use_Lya_xrays")==0){
@@ -127,7 +128,7 @@ void get_Simfast21_params(char *basedir){
   global_halo_Rmax=global_halo_Rmax*global_hubble;  /* Mpc/h */
   if(global_halo_Rmax>global_L/2.0) global_halo_Rmax=global_L/2.0;
   global_bubble_Rmax=global_bubble_Rmax*global_hubble;  /* Mpc/h */
-  if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.;
+  if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.; /* make sure maximum bubble radius is half the box size, e.g. one bubble over the all box... */
   global_flux_Rmax=global_flux_Rmax*global_hubble;  /* Mpc/h */
   global_L3=global_L*global_L*global_L;
   global_dk=2*PI/global_L;

@@ -88,7 +88,7 @@ int main(int argc, char * argv[]) {
   /* Check for correct number of parameters*/
   if (argc != 2) {
     printf("Usage : xalpha base_dir\n");
-    exit(0);
+    exit(1);
   }
   
   get_Simfast21_params(argv[1]);

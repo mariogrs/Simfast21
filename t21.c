@@ -2,7 +2,7 @@
 /*************************************************************
 SimFast21
 Calculates the 21cm brightness temperature
-output units in Kelvin
+**NOTE**: output units in Kelvin
 *************************************************************/
 
 
@@ -47,29 +47,15 @@ int main(int argc, char * argv[]) {
 
 
   /* Check for correct number of parameters*/
-  if(argc == 1 || argc > 5) {
-    printf("Usage : t21 base_dir [zmin] [zmax] [dz]\n");
+  if(argc != 2) {
+    printf("Usage : t21 base_dir\n");
     exit(1);
   }
   get_Simfast21_params(argv[1]);
   if(global_use_Lya_xrays==0) printf("Lya and xray use set to false - assuming TS>>TCMB in t21 calculation.\n");
-  if(argc > 2) {
-    zmin=atof(argv[2]);
-    if (zmin < global_Zminsim) zmin=global_Zminsim;
-    if(argc > 3) {
-      zmax=atof(argv[3]);
-      if(zmax>global_Zmaxsim) zmax=global_Zmaxsim;
-      if(argc==5) dz=atof(argv[4]); else dz=global_Dzsim;
-    }else {
-      zmax=global_Zmaxsim;
-      dz=global_Dzsim;
-    }
-    zmin=zmax-dz*ceil((zmax-zmin)/dz); /* make sure (zmax-zmin)/dz is an integer so that we get same redshifts starting from zmin or zmax...*/ 
-  }else {
-    zmin=global_Zminsim;
-    zmax=global_Zmaxsim;
-    dz=global_Dzsim;
-  }
+  zmin=global_Zminsim;
+  zmax=global_Zmaxsim;
+  dz=global_Dzsim;
 
 #ifdef _OMPTHREAD_
   omp_set_num_threads(global_nthreads);
@@ -236,7 +222,7 @@ int main(int argc, char * argv[]) {
 #endif
       for(i=0;i<global_N3_smooth;i++) {
   	/* output in K */
-	t21[i]=23.0/1000.*(1.+(double)temp[i])*t21[i]/(1.+1.*dvdr[i])*(0.7/global_hubble)*(global_omega_b*global_hubble*global_hubble/0.02)*sqrt((0.15/global_omega_m/global_hubble/global_hubble)*(1.+z)/10.);
+	t21[i]=23.0/1000.*(1.+(double)temp[i])*t21[i]/(1.+1.*dvdr[i])*(0.7/global_hubble)*(global_omega_b*global_hubble*global_hubble/0.02)*sqrt((0.15/global_omega_m/global_hubble/global_hubble)*(1.+z)/10.);  /*Units in Kelvin */
       }
       
       sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.0f.dat",argv[1],z,global_eff,global_N_smooth,global_L);

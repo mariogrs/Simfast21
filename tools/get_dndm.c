@@ -3,6 +3,7 @@
 SimFast21
 Auxiliar code - 2014
 Description: Calculates halo dn/dm for a given halo catalogue. Uses same bins and mass range as simulation.
+Uses logarithmic binning and same mass bins as the simulation.
 Also calculates theoretical mass function
 *********************************************************************************************************/
 
@@ -28,7 +29,7 @@ int main(int argc, char **argv){
   double mass, dm,z, m1, m2, dmi, dndma,m3;
   long int ind, i, j;
   double Mmin, Mmax; 
-  double dlm, R_lim, R, halo_mass;
+  double dlm, R_lim, halo_mass;
   double dndm[10000];
   int N;
   int nint=20;
@@ -58,22 +59,27 @@ int main(int argc, char **argv){
   elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);  
   fclose(fid);
 
-  R_lim=global_halo_Rmin_dx*global_dx_halo;
-  R=R_lim*pow(global_Rhalo,(int)(log(global_halo_Rmax/R_lim)/log(global_Rhalo)))+R_lim/10000.;
-  halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R,3)*pow(global_Rhalo,3/2.0);  /* This is a new change ... */
-  dlm=3*log10(global_Rhalo);
-  N=(int)roundf((log10(halo_mass)-log10(global_halo_Mmin))/dlm)+1;
-  Mmin=halo_mass/pow(global_Rhalo,3.0*N);
-  if(Mmin >= global_halo_Mmin) {N=N+1; Mmin=Mmin/pow(global_Rhalo,3.0);}
-  Mmin=Mmin/pow(global_Rhalo,3/2.0);
-
+  if(global_use_sgrid==1)
+    Mmin=global_halo_Mmin;
+  else {
+    if(global_halo_Rmin_dx < 2) {
+      R_lim=1.0*global_dx_halo;
+    }else {
+      R_lim=global_halo_Rmin_dx*global_dx_halo;
+    }
+    Mmin=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3);
+    if(Mmin <= global_halo_Mmin+10.) Mmin=global_halo_Mmin;
+  }
+  Mmax=(4.0/3.0)*PI*global_rho_m*pow(global_halo_Rmax,3);
+  dlm=log10(Mmax/Mmin)/global_Nhbins;
+  N=global_Nhbins+1;
   printf("# Mmin: %E     dlm: %E\n", Mmin, dlm);
-  printf("# N: %d\n", N);
+  printf("# N bins: %d\n", N);
   ntot=0;
   for(i=0;i<N;i++) dndm[i]=0.0;
   for(i=0;i<nhalos;i++){
     mass=(double)halo_v[i].Mass;
-    ind=(int)roundf((log10((mass)/Mmin)/dlm));
+    ind=(int)roundf((log10((mass+0.1)/Mmin)/dlm));
     dndm[ind]+=1.0;
     ntot++;
   }

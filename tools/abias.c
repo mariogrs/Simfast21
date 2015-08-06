@@ -22,7 +22,7 @@ int main(int argc, char **argv){
   double temp, bias, R, sigmaM;
 
   if(argc!=5) {
-    printf("\nCalculates the analytical bias for a given redshift and mass interval.\n");
+    printf("\nCalculates the analytical halo bias for a given redshift and mass interval.\n");
     printf("usage: abias   work_dir   z   Mmin   Mmax\n");
     printf("Mmin and Mmax in Msun units.\n\n");
     exit(1);
