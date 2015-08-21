@@ -119,9 +119,10 @@ void get_Simfast21_params(char *basedir){
       printf("No CAMB file. Exiting...\n");
       exit(1);
     }
-    sprintf(fname, "%s/%s",basedir,global_camb_file); 
+    sprintf(fname, "%s/%s",basedir,global_camb_file);
+    printf("Using cosmology from CAMB file: %s\n",fname);
     set_cosmology_fromCAMB(fname);
-  }
+  } else global_pk_flag=0;
   global_rho_m=global_omega_m*RHO_0/global_hubble;  /* units of M_sun/(Mpc/h)**3 */
   global_rho_b=global_omega_b*RHO_0/global_hubble;
   global_L=global_L*global_hubble;  /* Mpc/h */
@@ -229,7 +230,7 @@ void print_parms(void) {
   printf("global_Zminsfr: %f\n",global_Zminsfr);
 
   /*-----------------------Cosmological parameters--------------------------- */
-  printf("global_sig8_new: %f\n",global_sig8_new);
+  if(global_pk_flag==0) printf("global_sig8_new: %f\n",global_sig8_new);
   printf("global_n_index: %f\n",global_n_index);
   printf("global_hubble: %f\n",global_hubble);
   printf("global_omega_m: %f\n",global_omega_m);
@@ -253,7 +254,7 @@ void print_parms(void) {
   /*------------------------Ionization parameters-----------------------------*/
   printf("global_eff: %f\n",global_eff); //Efficiency parameter for determination of the ionization field
   printf("global_bubble_Rmax: %f Mpc/h\n",global_bubble_Rmax);
-
+  printf("global_bubble_Nbins: %f\n",global_bubble_Nbins);
 
   /*----------Variables for reading matter power spectrum from file-------- */
   printf("global_pk_flag: %d\n",global_pk_flag); // Matter power spectrum: 0 - Eisenstein & Hu fitting formulae; 1 - Read form file (Output of CMBFast, CAMB)

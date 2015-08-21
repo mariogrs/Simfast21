@@ -102,6 +102,7 @@ int main(int argc, char **argv){
 
   printf("Reading parameters...\n\n");
   get_Simfast21_params(argv[1]);
+  print_parms();
 
 #ifdef _OMPTHREAD_
   omp_set_num_threads(global_nthreads);
@@ -132,8 +133,8 @@ int main(int argc, char **argv){
   }   
  
   if(global_pk_flag==1){
-  
-    sprintf(fname, "%s/%s",argv[1],global_pk_filename); 
+    sprintf(fname, "%s/%s",argv[1],global_pk_filename);
+    printf("Using matter power spectrum from CAMB output: %s\n",fname);
     if((file_power=fopen(fname,"r"))==NULL){  
       printf("\nThe CAMB Pk file cannot be open\n");
       exit(1);;
@@ -177,7 +178,7 @@ int main(int argc, char **argv){
   gsl_rng_set (r, global_seed);
   for(i=0;i<global_N_halo*global_N_halo*(global_N_halo/2+1);i++) map_in[i]=gsl_ran_gaussian(r,1.0)+I*gsl_ran_gaussian(r,1.0);
 
-  eSetCosm= Set_Cosmology(global_omega_m, global_omega_b, global_lambda, 0.0, &tf); /* sets cosmology for transfer function calculation at z=0 */
+  if(global_pk_flag==0) eSetCosm= Set_Cosmology(global_omega_m, global_omega_b, global_lambda, 0.0, &tf); /* sets cosmology for transfer function calculation at z=0 */
 
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(global_N_halo,global_dk,map_in,global_pk_flag) private(i,indi,j,indj,p,kk) 
