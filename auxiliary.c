@@ -21,6 +21,9 @@ Auxiliary functions (cosmology, etc)
 
 
 
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 /* ------------------------- TFmdm_set_cosm() ------------------------ */
 int Set_Cosmology(double omega_matter, double omega_baryon, double omega_lambda, double redshift, tf_parms *tf) {
 /* This routine takes cosmological parameters and a redshift and sets up
@@ -33,8 +36,7 @@ all the internal scalar quantities needed to compute the transfer function. */
 /*        redshift     -- The redshift at which to evaluate */
 /* OUTPUT: Returns 0 if all is well, 1 if a warning was issued.  Otherwise,
 	sets many global variables for use in TFmdm_onek_mpc() */
-
-
+  
 /*------- Variables for Einsestein & Hu transfer function-----------------*/
   double alpha_gamma,     /* sqrt(alpha_nu) */
     alpha_nu,        /* The small*/
@@ -57,10 +59,7 @@ all the internal scalar quantities needed to compute the transfer function. */
     y_drag,		   /* Ratio of z_equality to z_drag */
     z_drag,		   /* Redshift of the drag epoch */
     z_equality;	   /* Redshift of matter-radiation equality */
-  
-
-  /********************************************************************/
-  
+    
   double z_drag_b1, z_drag_b2, omega_denom;
   int qwarn;
   qwarn = 0;
@@ -91,7 +90,6 @@ all the internal scalar quantities needed to compute the transfer function. */
   }
   
   if (omega_baryon<=0) omega_baryon=1e-5;
-  
   omega_curv = 1.0-omega_matter-omega_lambda;
   omhh = omega_matter*SQR(global_hubble);
   obhh = omega_baryon*SQR(global_hubble);
@@ -116,7 +114,6 @@ all the internal scalar quantities needed to compute the transfer function. */
   /* Set up for the free-streaming & infall growth function */
   p_c = 0.25*(5.0-sqrt(1+24.0*f_cdm));
   p_cb = 0;   
-  
   omega_denom = omega_lambda+SQR(1.0+redshift)*(omega_curv+
 						omega_matter*(1.0+redshift));     
   omega_lambda_z = omega_lambda/omega_denom;
@@ -149,8 +146,11 @@ all the internal scalar quantities needed to compute the transfer function. */
 
 
 
-/* ---------------------------- TFmdm_onek_mpc() ---------------------- */
 
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ---------------------------- TFmdm_onek_mpc() ---------------------- */
 double Transfer_Function(double kk, tf_parms *tf) {
   /* Given a wavenumber in Mpc^-1, return the transfer function for the
      cosmology held in the global variables. */
@@ -205,14 +205,20 @@ double Transfer_Function(double kk, tf_parms *tf) {
 }
 
 
-double Transfer_Functionh(double kk, tf_parms *tf){//Tk com k in units of hMpc-1 
+
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* input kk in h/Mpc */
+double Transfer_Functionh(double kk, tf_parms *tf){
       
-  return Transfer_Function(kk*global_hubble,tf);
+  return Transfer_Function(kk*global_hubble,tf); /* turn kk into units of 1/Mpc */
       
 }
 
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
 /* ---------------------------- Hz() ---------------------- */
 /* units s^-1 */
 double Hz(double z) {
@@ -221,6 +227,8 @@ double Hz(double z) {
 
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 /* dz/dt in 1/seconds */
 double dzdt(double z){
   return (-Hz(z)*(1.0+z));
@@ -228,8 +236,9 @@ double dzdt(double z){
 
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 /* Returns the integral from z to z+100 */
-
 double intGrowth(double zz){
 
   double dz=0.001;
@@ -248,12 +257,17 @@ double intGrowth(double zz){
 
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 double getGrowth(double z){
-
+  
   //  printf("%E %E int: %E  %E\n",Hz(z),Hz(0),intGrowth(z),intGrowth(0));
   return Hz(z)/Hz(0)*intGrowth(z)/intGrowth(0.);
 }
 
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 double getGrowthb(double z){
 
   int   eSetCosm;          // = 0 if their is an error = 1 if  otherwise
@@ -266,6 +280,8 @@ double getGrowthb(double z){
 }
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 double dgrowthdt(double redshift){
   double dg;
   double dz= 1e-3;
@@ -275,6 +291,9 @@ double dgrowthdt(double redshift){
   return dg;
 }
 
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 double dgrowthdz(double redshift){
   double dg;
   double dz= 1e-3;
@@ -287,7 +306,11 @@ double dgrowthdz(double redshift){
 
 
 
-/*----------------------Função Power----------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
+/*--------------------- Power Spectrum ----------------------*/
+/* Input: k in h/Mpc */
+/* Output: P(k) in (Mpc/h)^3 */
 /* P(k) for z=0 */
 /* Assumes Set_Cosmology() was called */
 double powerFunction(double k, tf_parms *tf){
@@ -306,7 +329,9 @@ double powerFunction(double k, tf_parms *tf){
 
 
 
-/*--------------------------------------------------------------------------------*/
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 double W2(double x){ 
   
   double j1onx;
@@ -318,6 +343,10 @@ double W2(double x){
   return 9.0*j1onx*j1onx;  //9*j1(kr)/KR*j1(kr)/kR=W2
 }
 
+
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 double W_filter(double x){ 
   
   double j1onx;
@@ -330,6 +359,10 @@ double W_filter(double x){
 }
 
 
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* R in Mpc/h */
 double dsigmaR(double x, void *parms)
 { 
   double R=*(double *)(*(void **)parms);
@@ -374,6 +407,11 @@ double sig8(double omm, double omb, double lamb) {
 }
   
 
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* normalised sigma R */
+/* R in Mpc/h */
 double sigma(double R) {
 
   double sig8_old;
@@ -385,6 +423,9 @@ double sigma(double R) {
 }
 
 
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 double deltaFilter(double sigma_aux, double growth){
 
   double deltacMZ;
@@ -400,6 +441,8 @@ double deltaFilter(double sigma_aux, double growth){
 
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 double Bias(double z, double sigmaM){
 
   double b,deltac,growth,nuhat;
@@ -414,6 +457,9 @@ double Bias(double z, double sigmaM){
 }
 
 
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 double poisson_mean(double dn,double growth, double sigma2, double deltarho, double z,double dx,double bias){
 
   double poisson,growth2,B;  
@@ -429,6 +475,8 @@ double poisson_mean(double dn,double growth, double sigma2, double deltarho, dou
 }
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 int poisson_sampling(double dn, double growth, double sigma2, double deltarho, double z, double dx, double bias,double p){
   
   int check;
@@ -442,13 +490,20 @@ int poisson_sampling(double dn, double growth, double sigma2, double deltarho, d
 }
 
 
-/* output in Mpc/h */
+
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* input mass in Msun */
+/* output radius in Mpc/h */
 double MasstoRadius(double M){
   return pow(3*M/(4*PI*global_omega_m*RHO_0/global_hubble), 1.0/3.0);
 }
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 /* Mass in Msun */
+/* Return dn/dm in number per Msun per (Mpc/h)^3 */
 double mass_function_ST(double z, double M){
 
   double deltac,sigmaM,sigmaMdm, dlnsigmadm, nuhat, growth,M2,R1,R2;
@@ -463,16 +518,12 @@ double mass_function_ST(double z, double M){
   R2=MasstoRadius(M2);
     
   growth = getGrowth(z);
-
   deltac=global_delta_c;
- 
   sigmaM = sigma(R1)*growth ; 
   sigmaMdm = sigma(R2)*growth; 
   
   dlnsigmadm = (sigmaMdm-sigmaM)/(M/1000.);
- 
   nuhat = sqrt(a) * deltac / sigmaM;
-  
   result=(-global_omega_m*RHO_0/global_hubble)/M * dlnsigmadm/sigmaM * sqrt(2.0/PI)*A * (1+ pow(nuhat, -2*p)) * nuhat * pow(E, -nuhat*nuhat/2.0);
  
   return result;
@@ -481,6 +532,8 @@ double mass_function_ST(double z, double M){
 
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 long int check_borders(long int x, long int N){
   
   x=x%N;
@@ -492,6 +545,8 @@ long int check_borders(long int x, long int N){
 
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 /* ----------------Functions---------------------------------------*/
 void box_symmetriesd(double complex *box, long int N) {
 
@@ -535,7 +590,8 @@ void box_symmetriesd(double complex *box, long int N) {
 
 
 
-
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 void box_symmetriesf(float complex *box, long int N) {
 
   long int i,j,indNi,indNj;
@@ -577,6 +633,8 @@ void box_symmetriesf(float complex *box, long int N) {
 }
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 float *smooth_boxb(float *box, float *box_smoothed, long int N, long int Ns) {
 
   double av,sm,sm3;
@@ -621,6 +679,8 @@ float *smooth_boxb(float *box, float *box_smoothed, long int N, long int Ns) {
 }
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 /* This divides the halo mass for all the cells that were used initially to find the halo - it shouldn't be used */
 void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos){
   
@@ -635,11 +695,11 @@ void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos){
   for (ii=0;ii<global_N3_smooth;ii++) halo_box[ii]=0.;
 
   for(il=0;il<nhalos;il++) {
-    Radius=pow(halo[il].Mass/(4.0/3*PI*global_rho_m),1.0/3);
-    ii_c=(long int)((halo[il].x)/global_smooth_factor); 
-    ij_c=(long int)((halo[il].y)/global_smooth_factor);
-    ik_c=(long int)((halo[il].z)/global_smooth_factor);
-    ncells_1D=(long int)(Radius/global_dx_smooth);
+    Radius=pow(halo[il].Mass/(4.0/3*PI*global_rho_m),1.0/3); 
+    ii_c=(long int)roundf((halo[il].x)/global_smooth_factor); 
+    ij_c=(long int)roundf((halo[il].y)/global_smooth_factor);
+    ik_c=(long int)roundf((halo[il].z)/global_smooth_factor);
+    ncells_1D=(long int)roundf(Radius/global_dx_smooth);
     if(ncells_1D==0)ncells_1D=1;   
     ncells_3D=0;
     for(ii=-(ncells_1D+1);ii<=ncells_1D+1;ii++){
@@ -670,6 +730,8 @@ void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos){
 
 
 
+/* ------------------------------------------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------------------------------*/
 /* This assumes that all halos are smaller than cell size and so all its mass should be in the central cell */
 void get_collapsed_mass_boxb(float* halo_box,Halo_t *halo, long int nhalos){
   
@@ -686,7 +748,7 @@ void get_collapsed_mass_boxb(float* halo_box,Halo_t *halo, long int nhalos){
     i=(long int)((halo[il].x)/global_smooth_factor); 
     j=(long int)((halo[il].y)/global_smooth_factor);
     p=(long int)((halo[il].z)/global_smooth_factor);
-    halo_box[i*global_N_smooth*global_N_smooth+j*global_N_smooth+p]+=halo[il].Mass;  /* After Halos are adjusted there could be some overlap?? */	
+    halo_box[i*global_N_smooth*global_N_smooth+j*global_N_smooth+p]+=halo[il].Mass;  /* After Halos are adjusted there could be some overlap... */	
   }
 
 }    

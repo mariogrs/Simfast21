@@ -34,6 +34,7 @@ double factor;
 
 
 /*Power spectrum at z=0  */
+/* k in h/Mpc */
 double power_k(double k, tf_parms *tf){
   
   double  pkk;
@@ -55,6 +56,8 @@ long int search_kindex(double kk){
 }
 
 /*Function yielding the overdensity in Fourier space */
+/* k in h/Mpc */
+/* variance in (Mpc/h)^3 */
 double deltaK(double k,int flag, tf_parms *tf){
   
   double variance;
@@ -213,7 +216,7 @@ int main(int argc, char **argv){
   fftwf_destroy_plan(pc2r);
   free(map_in);     
 
-  /* adds the missing factors to normalize */
+  /* adds second missing factors to normalize */
   for(i=0;i<global_N_halo*global_N_halo*global_N_halo;i++){
     map_f[i]/=global_L3;
   }
@@ -227,7 +230,7 @@ int main(int argc, char **argv){
     }
   }
   printf("Writting density field...\n");fflush(0);
-  sprintf(fname, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L/global_hubble));   /* Use units for file name in Mpc... */
+  sprintf(fname, "%s/delta/delta_z0_N%ld_L%.1f.dat", argv[1],global_N_halo, global_L/global_hubble);   /* Use units for file name in Mpc... */
   file_out=fopen(fname,"wb");
   if (file_out==NULL) {
     printf("\n Problem opening the delta output file:%s\n",fname); 

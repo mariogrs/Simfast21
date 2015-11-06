@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
   for(redshift=zmin;redshift<(zmax+dz/10) && (neutral < xHlim);redshift+=dz){    
     printf("z = %f\n",redshift);fflush(0);
 
-    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
+    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading deltanl file... Check path or if the file exists..."); exit (1);}
     elem=fread(density_map,sizeof(float),global_N3_smooth,fid);
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
       density_map[i]=(1.0+density_map[i])*global_rho_m*global_dx_smooth*global_dx_smooth*global_dx_smooth; /* total mass in 1 cell */
       bubblef[i]=0.0;
     }
-    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
+    sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
     elem=fread(halo_map,sizeof(float),global_N3_smooth,fid);
@@ -391,7 +391,7 @@ int main(int argc, char *argv[]) {
     neutral/=global_N3_smooth;
     printf("neutral fraction=%lf\n",neutral);fflush(0);
     xHI[iz]=neutral;
-    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.0f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
+    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
     if((fid = fopen(fname,"wb"))==NULL) {
       printf("Error opening file:%s\n",fname);
       exit(1);
@@ -406,7 +406,7 @@ int main(int argc, char *argv[]) {
   while(redshift<(zmax+dz/10)) {
     printf("z(>%f) = %f\n",xHlim,redshift);fflush(0);
     xHI[iz]=1.0;
-    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.0f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
+    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
     if((fid = fopen(fname,"wb"))==NULL) {
       printf("Error opening file:%s\n",fname);
       exit(1);
@@ -428,7 +428,7 @@ int main(int argc, char *argv[]) {
   }
   for(redshift=zmax;redshift>(zmin-dz/10);redshift-=dz) fprintf(fid,"%f\n",redshift); /* first line should be highest redshift */
   fclose(fid);
-  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.0f.dat",argv[1],global_eff,global_N_smooth,global_L/global_hubble);
+  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.1f.dat",argv[1],global_eff,global_N_smooth,global_L/global_hubble);
   if((fid = fopen(fname,"a"))==NULL) {
     printf("Error opening file:%s\n",fname);
     exit(1);

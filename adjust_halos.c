@@ -22,7 +22,7 @@ int main(int argc, char **argv){
 
   
   FILE *fid;
-  long int i,j,p;
+  long int i;
   long int x,y,z;
   long int nhalos;
   long int indice;  
@@ -64,7 +64,7 @@ int main(int argc, char **argv){
     printf("Problem...\n");
     exit(1);
   }
-  sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
+  sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%.1f.dat", argv[1],global_N_halo,(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading X velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realx,sizeof(float),global_N3_halo,fid);
@@ -73,7 +73,7 @@ int main(int argc, char **argv){
     printf("Problem...\n");
     exit(1);
   }
-  sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
+  sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%.1f.dat", argv[1],global_N_halo,(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading Y velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realy,sizeof(float),global_N3_halo,fid);
@@ -82,7 +82,7 @@ int main(int argc, char **argv){
     printf("Problem...\n");
     exit(1);
   }
-  sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
+  sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%.1f.dat", argv[1],global_N_halo,(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading Z velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realz,sizeof(float),global_N3_halo,fid);
@@ -113,7 +113,7 @@ int main(int argc, char **argv){
     growth=getGrowth(redshift)-getGrowth(300);
     
     /* read halo catalog */
-    sprintf(fname, "%s/Halos/halo_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
+    sprintf(fname, "%s/Halos/halo_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
     if((fid=fopen(fname,"rb"))==NULL){  
       printf("Halo file: %s does not exist... Check path or run get_halos for this configuration\n",fname);
       exit(1);
@@ -152,8 +152,8 @@ int main(int argc, char **argv){
     get_collapsed_mass_boxb(halo_map,halo_v, nhalos);  /* boxb -  all halo mass inside one cell */
     
     if(global_save_nl_halo_cat==1){
-      printf("Writing non-linear halo catalog\n");fflush(0);
-      sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble)); 
+      printf("Writing full non-linear halo catalog\n");fflush(0);
+      sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble)); 
       if((fid=fopen(fname,"wb"))==NULL){  
 	printf("\nError opening Halonl output catalog\n");
 	return 0;
@@ -163,10 +163,10 @@ int main(int argc, char **argv){
     }
     free(halo_v);
     
-    printf("Writing halo mass box...\n");fflush(0);
-    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
+    printf("Writing collapsed mass box...\n");fflush(0);
+    sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     if((fid=fopen(fname,"wb"))==NULL){  
-      printf("\nError opening Halonl output box\n");
+      printf("\nError opening collapsed mass output box\n");
       return 0;
     }
     elem=fwrite(halo_map,sizeof(float),global_N3_smooth,fid);

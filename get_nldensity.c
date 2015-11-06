@@ -62,7 +62,7 @@ int main(int argc, char **argv){
     exit(1);
   }
   
-  sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
+  sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%.1f.dat", argv[1],global_N_halo,(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading X velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realx,sizeof(float),global_N3_halo,fid);
@@ -71,7 +71,7 @@ int main(int argc, char **argv){
     printf("Problem vy...\n");
     exit(1);
   }
-  sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
+  sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%.1f.dat", argv[1],global_N_halo,(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading Y velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realy,sizeof(float),global_N3_halo,fid);
@@ -81,7 +81,7 @@ int main(int argc, char **argv){
     exit(1);
   }
   
-  sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L/global_hubble)); 
+  sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%.1f.dat", argv[1],global_N_halo,(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading Z velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realz,sizeof(float),global_N3_halo,fid);
@@ -110,7 +110,7 @@ int main(int argc, char **argv){
     printf("Problem...\n");
     exit(1);
   }
-  sprintf(fname, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L/global_hubble));  
+  sprintf(fname, "%s/delta/delta_z0_N%ld_L%.1f.dat", argv[1],global_N_halo, (global_L/global_hubble));  
   fid=fopen(fname,"rb");	
   if (fid==NULL){printf("\nError reading density file... Check if the file exists...\n"); exit (1);}
   elem=fread(map_in,sizeof(float),global_N3_halo,fid);
@@ -129,7 +129,7 @@ int main(int argc, char **argv){
   /*********** Redshift cycle ********************************************/
   for(redshift=zmax;redshift>(zmin-dz/10.);redshift-=dz){
     
-    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%d.dat",argv[1],redshift,global_N_smooth,(int)(global_L/global_hubble)); 
+    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,(global_L/global_hubble)); 
     if((fid=fopen(fname,"rb"))!=NULL){  
       printf("File %s already exists - skipping...\n",fname);
       fclose(fid);
@@ -166,7 +166,7 @@ int main(int argc, char **argv){
       printf("Smoothing...\n");fflush(0);   
       smooth_boxb(map_out, map_out2, global_N_halo, global_N_smooth);
       printf("Writing...\n");fflush(0);   
-      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%d.dat",argv[1],redshift,global_N_smooth,(int)(global_L/global_hubble)); 
+      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,(global_L/global_hubble)); 
       if((fid=fopen(fname,"wb"))==NULL){  
 	printf("\nError opening output nl_density file... Check path...\n");
 	exit(1);
@@ -175,7 +175,7 @@ int main(int argc, char **argv){
       fclose(fid);
     
       if(global_save_original_deltanl==1){
-	sprintf(fname, "%s/delta/deltanl_o_z%.3f_N%ld_L%d.dat",argv[1],redshift,global_N_halo,(int)(global_L/global_hubble)); 
+	sprintf(fname, "%s/delta/deltanl_o_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_halo,(global_L/global_hubble)); 
 	if((fid=fopen(fname,"wb"))==NULL){  
 	  printf("\nError opening output nl_density file... Check path...\n");
 	  exit(1);

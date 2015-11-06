@@ -19,7 +19,7 @@ void get_Simfast21_params(char *basedir){
   
   char line[256],fname[300];
   int length,n;
-  char first[100], second[100], third[100];  
+  char first[100], third[100];  
   char *cpoint;
  
   length=256;
@@ -154,7 +154,7 @@ void set_cosmology_fromCAMB(char * paramfilename) {
   
   char line[256];
   int length,n;
-  char first[99], second[99], third[99];  
+  char first[99], third[99];  
   double ombh2,omch2,omk,w;
   char use_phys[99], root[99];
   char *cpoint;
@@ -216,7 +216,7 @@ void print_parms(void) {
   printf("global_N3_halo: %ld\n",global_N3_halo); //Total number of cells of the box for determination of collapsed halos 
   printf("global_N_smooth: %ld\n",global_N_smooth); // Linear number of cells of the smoothed boxes  
   printf("global_N3_smooth: %ld\n",global_N3_smooth); // Total number of cells of the smoothed boxes  
-  printf("global_smooth_factor: %ld\n",global_smooth_factor); //Just N_halo/N_smooth
+  printf("global_smooth_factor: %f\n",global_smooth_factor); //Just N_halo/N_smooth
   printf("global_L: %f Mpc/h\n",global_L); //Physical size of the simulation box
   printf("global_L3: %f (Mpc/h)^3\n",global_L3);//Physical volume of the simulation box
   printf("global_dx_halo: %f Mpc/h\n",global_dx_halo);
@@ -240,7 +240,7 @@ void print_parms(void) {
   printf("global_rho_b: %E\n",global_rho_b);
 
   /*------------------------Halo collapse parameters-----------------------------*/
-  printf("global_halo_Nbins: %f\n",global_Nhbins);
+  printf("global_halo_Nbins: %d\n",global_Nhbins);
   printf("global_use_sgrid: %d\n",global_use_sgrid);
   printf("global_delta_c: %f\n",global_delta_c);
   printf("global_STa: %f\n",global_STa);
@@ -254,7 +254,7 @@ void print_parms(void) {
   /*------------------------Ionization parameters-----------------------------*/
   printf("global_eff: %f\n",global_eff); //Efficiency parameter for determination of the ionization field
   printf("global_bubble_Rmax: %f Mpc/h\n",global_bubble_Rmax);
-  printf("global_bubble_Nbins: %f\n",global_bubble_Nbins);
+  printf("global_bubble_Nbins: %d\n",global_bubble_Nbins);
 
   /*----------Variables for reading matter power spectrum from file-------- */
   printf("global_pk_flag: %d\n",global_pk_flag); // Matter power spectrum: 0 - Eisenstein & Hu fitting formulae; 1 - Read form file (Output of CMBFast, CAMB)

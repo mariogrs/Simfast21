@@ -164,7 +164,7 @@ int main(int argc, char * argv[]) {
       exit(1);
     }
   fclose(file);    
-  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.0f.dat",argv[1],global_eff,global_N_smooth,global_L);
+  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.1f.dat",argv[1],global_eff,global_N_smooth,global_L/global_hubble);
   if((file = fopen(fname,"r"))==NULL) {
     printf("Error opening file:%s\n",fname);
     exit(1);
@@ -182,7 +182,7 @@ int main(int argc, char * argv[]) {
     fHeI[i]=fHI[i];
     fHeII[i]=1.-fHeI[i];
   }
-  sprintf(fname,"%s/Output_text_files/sfrd_av_N%ld_L%.0f.dat",argv[1],global_N_smooth,global_L);
+  sprintf(fname,"%s/Output_text_files/sfrd_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble);
   if((file = fopen(fname,"r"))==NULL) {
     printf("Error opening file:%s\n",fname);
     exit(1);
@@ -211,7 +211,7 @@ int main(int argc, char * argv[]) {
     
     /* our box is at nzbox */
     printf("\n\nztocompute: %f\n",zbox[nzbox]);fflush(0);
-    sprintf(fname,"%s/xrays/EpsilonXon_z%.3lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L);
+    sprintf(fname,"%s/xrays/EpsilonXon_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
     if((file = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping this redshift...\n",fname);
       fclose(file);
@@ -240,7 +240,7 @@ int main(int argc, char * argv[]) {
       
       /*Initialize some variables*/  
       memset(Epsilon,0,global_N3_smooth*sizeof(double));
-      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_eff,global_N_smooth,global_L);
+      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_eff,global_N_smooth,global_L/global_hubble);
       printf("Read ioni file %s\n",fname);fflush(0);
       if((file = fopen(fname,"r"))==NULL) {
 	printf("Error opening file:%s\n",fname);
@@ -256,7 +256,7 @@ int main(int argc, char * argv[]) {
       for(box=0;box<numboxes;box++) {
 	printf("Read SFR %li at z=%5.3lf\n",box,zbox[box+nzbox]);fflush(0);
 	/* SFR in comoving (h/Mpc)**3 */
-	sprintf(fname,"%s/SFR/sfrd_z%.3lf_N%ld_L%.0f.dat",argv[1],zbox[box+nzbox],global_N_smooth,global_L);
+	sprintf(fname,"%s/SFR/sfrd_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[box+nzbox],global_N_smooth,global_L/global_hubble);
 	if((file = fopen(fname,"r"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -346,7 +346,7 @@ int main(int argc, char * argv[]) {
       }
       */
      
-      sprintf(fname,"%s/xrays/EpsilonXon_z%.3lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L);
+      sprintf(fname,"%s/xrays/EpsilonXon_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
       if((file = fopen(fname,"wb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);

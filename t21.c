@@ -75,12 +75,12 @@ int main(int argc, char * argv[]) {
     }
   }
 
-  sprintf(fname,"%s/Output_text_files/t21_av_N%ld_L%.0f.dat",argv[1],global_N_smooth,global_L); 
+  sprintf(fname,"%s/Output_text_files/t21_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble); 
   if((fidtxt=fopen(fname,"a"))==NULL){
     printf("\nError opening output %s file...\n",fname); 
     exit(1);
   }  
-  sprintf(fname,"%s/Output_text_files/TS_av_N%ld_L%.0f.dat",argv[1],global_N_smooth,global_L); 
+  sprintf(fname,"%s/Output_text_files/TS_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble); 
   if((fidtxt2=fopen(fname,"a"))==NULL){
     printf("\nError opening output %s file...\n",fname); 
     exit(1);
@@ -115,14 +115,14 @@ int main(int argc, char * argv[]) {
   /**************************************************/
   for(z=zmax;z>(zmin-dz/10);z-=dz){    
     printf("z = %f\n",z);fflush(0);
-    sprintf(fname,"%s/deltaTb/deltaTb_z%.3lf_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L);
+    sprintf(fname,"%s/deltaTb/deltaTb_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
     if((fid = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping this redshift...\n",fname);
       fclose(fid);
     }else {      
       if(z>(global_Zminsfr-global_Dzsim/10) && global_use_Lya_xrays==1) {
 	Tcmb=Tcmb0*(1.+z);
-	sprintf(fname,"%s/x_c/xc_z%.3lf_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L);
+	sprintf(fname,"%s/x_c/xc_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
 	if((fid = fopen(fname,"rb"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -130,7 +130,7 @@ int main(int argc, char * argv[]) {
 	fread(temp,sizeof(float),global_N3_smooth,fid);
 	fclose(fid);
 	for(i=0;i<global_N3_smooth;i++) t21[i]=(double)temp[i];
-	sprintf(fname,"%s/Lya/xalpha_z%.3lf_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L);
+	sprintf(fname,"%s/Lya/xalpha_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
 	if((fid = fopen(fname,"rb"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -143,7 +143,7 @@ int main(int argc, char * argv[]) {
 	  t21[i]=xtot/(1.+xtot);
 	}
 	
-	sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L);
+	sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
 	if((fid = fopen(fname,"rb"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -161,7 +161,7 @@ int main(int argc, char * argv[]) {
       }else {
 	for(i=0;i<global_N3_smooth;i++) t21[i]=1.0;
       }
-      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L); 
+      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble); 
       fid=fopen(fname,"rb");
       if (fid==NULL) {printf("Error reading deltanl file... Check path or if the file exists..."); exit (1);}
       fread(temp,sizeof(float),global_N3_smooth,fid);
@@ -225,7 +225,7 @@ int main(int argc, char * argv[]) {
 	t21[i]=23.0/1000.*(1.+(double)temp[i])*t21[i]/(1.+1.*dvdr[i])*(0.7/global_hubble)*(global_omega_b*global_hubble*global_hubble/0.02)*sqrt((0.15/global_omega_m/global_hubble/global_hubble)*(1.+z)/10.);  /*Units in Kelvin */
       }
       
-      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.0f.dat",argv[1],z,global_eff,global_N_smooth,global_L);
+      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],z,global_eff,global_N_smooth,global_L/global_hubble);
       if((fid = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
@@ -236,7 +236,7 @@ int main(int argc, char * argv[]) {
 	t21[i]=t21[i]*(1.-(double)temp[i]);  // neutral fraction...
       }
       
-      sprintf(fname,"%s/deltaTb/deltaTb_z%.3lf_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L);
+      sprintf(fname,"%s/deltaTb/deltaTb_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((fid = fopen(fname,"wb"))==NULL) {
 	printf("Cannot open file:%s...\n",fname);
 	exit(1);

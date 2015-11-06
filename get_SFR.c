@@ -71,9 +71,10 @@ int main(int argc, char **argv){
 
   nz=0;
   printf("Calculating halo mass average...\n");
+  /* redshift cycle */
   for(redshift=zmin;redshift<(zmax+dz/10);redshift+=dz){
     zv[nz]=redshift;
-    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L); 
+    sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     if((fid=fopen(fname,"rb"))==NULL){  
       printf("\nError opening %s\n",fname);
       exit(1);
@@ -85,7 +86,7 @@ int main(int argc, char **argv){
     fcollv[nz]=aver[nz]/(global_rho_m*global_L3);  /* Msun/(Mpc/h)^3 */
     aver[nz]/=global_N3_smooth;
     nz++;
-  }  
+  }  /* close redshift cycle */  
 
   printf("Interpolation for SFRD...\n");
   gsl_interp_accel *acc = gsl_interp_accel_alloc ();
@@ -101,7 +102,7 @@ int main(int argc, char **argv){
       exit(1);
     }
   }
-  sprintf(fname,"%s/Output_text_files/sfrd_av_N%ld_L%.0f.dat",argv[1],global_N_smooth,global_L); 
+  sprintf(fname,"%s/Output_text_files/sfrd_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble); 
   if((fid=fopen(fname,"a"))==NULL){
     printf("\nError opening output %s file...\n",fname); 
     exit(1);
@@ -116,8 +117,9 @@ int main(int argc, char **argv){
   gsl_interp_accel_free (acc);
 
   printf("Writing SFRD files...\n");
+  /* redshift cycle */
   for(i=0;i<nz;i++) {
-    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat",argv[1],zv[i],global_N_smooth,global_L); 
+    sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],zv[i],global_N_smooth,global_L/global_hubble); 
     if((fid=fopen(fname,"rb"))==NULL){  
       printf("\nError opening %s\n",fname);
       exit(1);
@@ -128,7 +130,7 @@ int main(int argc, char **argv){
     if(aver[i]>0.)
       for(j=0;j<global_N3_smooth;j++) halo_mass[j]*=sfrv[i]/aver[i];
     else for(j=0;j<global_N3_smooth;j++) halo_mass[j]=0.;
-    sprintf(fname, "%s/SFR/sfrd_z%.3f_N%ld_L%.0f.dat",argv[1],zv[i],global_N_smooth,global_L); 
+    sprintf(fname, "%s/SFR/sfrd_z%.3f_N%ld_L%.1f.dat",argv[1],zv[i],global_N_smooth,global_L/global_hubble); 
     if((fid=fopen(fname,"wb"))==NULL){
       printf("\nError opening output sfrd file... Chech if path is correct...\n"); 
     }

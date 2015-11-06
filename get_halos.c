@@ -32,7 +32,7 @@ Halos with mass smaller than cell size determined using a subgrid method
 int main(int argc, char **argv){
 
   
-  double nh_aver, dm, mass_aux, dndm_av, hbias, dndm, tempv;
+  double dm, mass_aux, dndm_av, hbias, tempv;
   double rhalo;
   long int nhalos_z, nhalos_R;
   double Pnhalos;
@@ -140,7 +140,7 @@ int main(int argc, char **argv){
 
   /* Reading dark matter density box */
   printf("Reading dark matter density box\n");fflush(0);
-  sprintf(dens_filename, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L/global_hubble));  
+  sprintf(dens_filename, "%s/delta/delta_z0_N%ld_L%.1f.dat", argv[1],global_N_halo, global_L/global_hubble);  
   fid_in=fopen(dens_filename,"rb");	/* second argument contains name of input file */
   if (fid_in==NULL) {
     printf("Error reading density file %s - check if the file exists...\n",dens_filename); 
@@ -185,7 +185,7 @@ int main(int argc, char **argv){
   for(redshift=zmax;redshift>(zmin-dz/10);redshift-=dz){
     
     printf("\n\n\n +++++++++++++++++++++++++++ z = %f +++++++++++++++++++++++++++++++\n",redshift);fflush(0);
-    sprintf(halo_filename, "%s/Halos/halo_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
+    sprintf(halo_filename, "%s/Halos/halo_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
     fid_out=fopen(halo_filename,"rb");
     if(fid_out!=NULL) {
       printf("File:%s already exists - skipping this redshift\n",halo_filename); fflush(0);
@@ -198,7 +198,7 @@ int main(int argc, char **argv){
       for(i=0;i<global_N3_halo;i++)  {flag_halo[i]=0; mass[i]=0.0;}
   
     growth=getGrowth(redshift);        
-    sprintf(halo_filename, "%s/Halos/halo_z%.3f_N%ld_L%.0f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
+    sprintf(halo_filename, "%s/Halos/halo_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
     fid_out=fopen(halo_filename,"wb");
     if(fid_out==NULL){printf("\n Catalog file error\n"); exit (1);}
     nhalos_z=0;  /* counts total halos for one box */

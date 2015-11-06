@@ -26,7 +26,7 @@ long int global_N_halo; //Linear number of cells of the box for determination of
 long int global_N3_halo; //Total number of cells of the box for determination of collapsed halos 
 long int global_N_smooth; // Linear number of cells of the smoothed boxes  
 long int global_N3_smooth; // Total number of cells of the smoothed boxes  
-long int global_smooth_factor; //Just N_halo/N_smooth
+float global_smooth_factor; //Just N_halo/N_smooth
 double global_L; //Physical size of the simulation box
 double global_L3;//Physical volume of the simulation box
 double global_dx_halo;
