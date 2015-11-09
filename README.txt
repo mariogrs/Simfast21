@@ -1,7 +1,7 @@
 
 *************************************************************************************************************************
 *                                                                                                                       *
-*  SimFast21 v1.5 beta                                                                                                      *
+*  SimFast21 - new version to match code used in arXiv:1510.04280v1                                                                                                     *
 *                                                                                                                       *   
 *  Copyright 2011 Mario Santos, Luis Ferramacho, Marta Silva, Alexandre Amblard, Asantha Cooray                         *
 *                                                                                                                       *
