@@ -20,12 +20,13 @@ Output: delta(z) with nonlinear corrections
 int main(int argc, char **argv){
  
   FILE *fid;
-  long int ind;
+  long int ind,i1,j1,p1;
   long int i,j,p,x,y,z;
   size_t elem;
   double redshift;
   double growth;
   double growth_in;
+  float x1,y1,z1;
   float *map_veloc_realx;
   float *map_veloc_realy;
   float *map_veloc_realz;
@@ -154,16 +155,63 @@ int main(int argc, char **argv){
 	    ind=i*global_N_halo*global_N_halo+j*global_N_halo+p;
 	    x=(long int)(i + map_veloc_realx[ind]*growth);
 	    y=(long int)(j + map_veloc_realy[ind]*growth);
-	    z=(long int)(p + map_veloc_realz[ind]*growth);   
+	    z=(long int)(p + map_veloc_realz[ind]*growth);
+	    x1=i + map_veloc_realx[ind]*growth;
+	    y1=j + map_veloc_realy[ind]*growth;
+	    z1=p + map_veloc_realz[ind]*growth;
+	    /**** track separation between old and new positions****/
+	    x1 -= x;
+	    y1 -= y;
+	    z1 -= z;
 	    x=check_borders(x,global_N_halo);
 	    y=check_borders(y,global_N_halo);
 	    z=check_borders(z,global_N_halo);
+	    /******** CIC cycle ****************/
 	    //#pragma omp critical
-	    map_out[x*global_N_halo*global_N_halo+y*global_N_halo+z]+=map_in[ind];    
+	    for(i1=0;i1<2;i1++){
+              for(j1=0;j1<2;j1++){
+                for(p1=0;p1<2;p1++){
+                  x += i1;
+                  y += j1;
+                  z += p1;
+                  /**** if the difference between cell positions is negative then go back to previous cell *****/
+                  if(x1 < 0.0){
+                    x = x - 1;
+                    x1 = fabsf(x1);
+                  }
+                  if(y1 < 0.0){
+                    y = y - 1;
+                    y1 = fabsf(y1);
+                  }
+                  if(z1 < 0.0){
+                    z = z - 1;
+                    z1 = fabsf(z1);
+                  }
+                  /*********************check periodic boundaries*************************/
+                  x=check_borders(x,global_N_halo);
+                  y=check_borders(y,global_N_halo);
+                  z=check_borders(z,global_N_halo);
+                  /****************chaning ratios for different directions ***************/
+                  if(i1 == 1) x1 = 1.0 - x1;
+                  if(j1 == 1) y1 = 1.0 - y1;
+                  if(p1 == 1) z1 = 1.0 - z1;
+                  /******* Apply CIC ****/
+                  map_out[x*global_N_halo*global_N_halo+y*global_N_halo+z] += (1.0 - x1)*(1.0 - y1)*(1.0 - z1)*map_in[ind];
+                  /********************* go back to the parent cell original coordinates and ratios ***************************/
+                  x -= i1;
+                  y -= j1;
+                  z -= p1;
+                  if(i1 ==1) x1 = 1.0 - x1;
+                  if(j1 ==1) y1 = 1.0 - y1;
+                  if(p1 ==1) z1 = 1.0 - z1;
+                }
+              }
+            }
 	  }
 	}
       }
       printf("Smoothing...\n");fflush(0);   
+      for(i=0;i<(global_N3_smooth);i++) map_out2[i] =0.0;
       smooth_boxb(map_out, map_out2, global_N_halo, global_N_smooth);
       printf("Writing...\n");fflush(0);   
       sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,(global_L/global_hubble)); 
