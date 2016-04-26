@@ -23,7 +23,6 @@ int main(int argc, char **argv){
   long int ind,i1,j1,p1,indice;
   long int i,j,p,x,y,z;
   size_t elem;
-  float kolo;
   double redshift;
   float x1,y1,z1;
   double growth;
@@ -166,7 +165,6 @@ int main(int argc, char **argv){
       //#pragma omp parallel for shared(map_out,map_in,growth,global_N_halo) private(i,j,p,ind,x,y,z)
       //#endif 
       //printf("Adjusting...\n");fflush(0);
-      kolo = 0.0;
       for(i=0;i<global_N_halo;i++){
 	for(j=0;j<global_N_halo;j++){
 	  for(p=0;p<global_N_halo;p++){
