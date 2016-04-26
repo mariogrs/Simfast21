@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
   /* Check for correct number of parameters*/
   if (argc != 2) {
     printf("Usage : xc base_dir\n");
-    exit(0);
+    exit(1);
   }
   get_Simfast21_params(argv[1]);
   if(global_use_Lya_xrays==0) {printf("Lya and xray use set to false - no need to calculate xc\n");exit(0);}
@@ -78,7 +78,7 @@ int main(int argc, char * argv[]) {
       exit(1);
     }
   fclose(fid);    
-  sprintf(fname,"%s/Output_text_files/xc_av_N%ld_L%.0f.dat",argv[1],global_N_smooth,global_L); 
+  sprintf(fname,"%s/Output_text_files/xc_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble); 
   if((fidtxt=fopen(fname,"a"))==NULL){
     printf("\nError opening output %s file...\n",fname); 
     exit(1);
@@ -110,24 +110,24 @@ int main(int argc, char * argv[]) {
 
     /* our box is at nzbox */
     printf("ztocompute: %f\n",zbox[nzbox]);fflush(0);
-    sprintf(fname,"%s/x_c/xc_z%.3lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L);
+    sprintf(fname,"%s/x_c/xc_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
     if((fid = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping this redshift...\n",fname);
       fclose(fid);
     }else {
-      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_eff,global_N_smooth,global_L);
+      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_eff,global_N_smooth,global_L/global_hubble);
       if((fid = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
       }
       fread(fHII,sizeof(float),global_N3_smooth,fid);  
       fclose(fid);
-      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L); 
+      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble); 
       fid=fopen(fname,"rb");
       if (fid==NULL) {printf("\nError reading deltanl file... Check path or if the file exists..."); exit (1);}
       fread(density_map,sizeof(float),global_N3_smooth,fid);
       fclose(fid);
-      sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L);
+      sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
       if((fid = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
@@ -152,7 +152,7 @@ int main(int argc, char * argv[]) {
 	//    xc_e=((1-(double)fHI[i])*nH_bar+nHe_bar*(2.-2.*fHeI[i]-fHeII[i]))*(double)rho_mat[i]*kappa_e(temp)/A10*Tstar/Tcmb;
 	xc[i]=(float)(xc_HI+xc_e);
       }
-      sprintf(fname,"%s/x_c/xc_z%.3lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L);
+      sprintf(fname,"%s/x_c/xc_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
       if((fid = fopen(fname,"wb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);

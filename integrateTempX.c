@@ -76,7 +76,7 @@ int main(int argc,char * argv[]) {
   Energy = (double*) malloc(sizeof(double)*Buffer);
   
 
-  sprintf(fname,"%s/Output_text_files/Temp_av_N%ld_L%.0f.dat",argv[1],global_N_smooth,global_L); 
+  sprintf(fname,"%s/Output_text_files/Temp_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble); 
   if((fidtxt=fopen(fname,"a"))==NULL){
     printf("\nError opening output %s file...\n",fname); 
     exit(1);
@@ -86,7 +86,7 @@ int main(int argc,char * argv[]) {
   /**************************************************/
   for(z=zmax; z > (zmin-dz/10); z-=dz) {
     printf("z: %f\n",z);fflush(0);
-    sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L);
+    sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
     if((filetx = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping redshift...\n",fname);
       fclose(filetx);
@@ -98,27 +98,27 @@ int main(int argc,char * argv[]) {
       growth=getGrowth(z);
       growtht=getGrowth(zt);
 
-      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L); 
+      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble); 
       fid=fopen(fname,"rb");
       if (fid==NULL) {printf("Error reading deltanl file... Check path or if the file exists..."); exit (1);}
       fread(delta,sizeof(float),global_N3_smooth,fid);
       fclose(fid);
-      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.0f.dat",argv[1],z,global_eff,global_N_smooth,global_L);
+      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],z,global_eff,global_N_smooth,global_L/global_hubble);
       if((filexi = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
       }
-      sprintf(fname,"%s/xrays/EpsilonXon_z%.3lf_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L);
+      sprintf(fname,"%s/xrays/EpsilonXon_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((fileEnergy = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
       }
-      sprintf(fname,"%s/xrays/xe_heat_z%.3lf_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L);
+      sprintf(fname,"%s/xrays/xe_heat_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((fileEnergycum = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
       }
-      sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.0f.dat",argv[1],z,global_N_smooth,global_L);
+      sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((filetx = fopen(fname,"wb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
@@ -126,7 +126,7 @@ int main(int argc,char * argv[]) {
       
       /* read previous temperature calculation at z+deltatime */    
       if (z<(zmax-dz/10)) {
-	sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.0f.dat",argv[1],z+global_Dzsim,global_N_smooth,global_L);    
+	sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],z+global_Dzsim,global_N_smooth,global_L/global_hubble);    
 	if((filetxold = fopen(fname,"rb"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);

@@ -49,7 +49,7 @@ int main(int argc, char * argv[]) {
   nz=i;
   printf("Number of lines: %d\n",nz);
   fclose(fid);    
-  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.0f.dat",argv[1],global_eff,global_N_smooth,global_L);
+  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.0f.dat",argv[1],global_eff,global_N_smooth,global_L/global_hubble);
   if((fid = fopen(fname,"r"))==NULL) {
     printf("Error opening file:%s\n",fname);
     exit(1);

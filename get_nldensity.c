@@ -35,30 +35,17 @@ int main(int argc, char **argv){
   char fname[300];
   double zmin,zmax,dz;
 
-  if(argc == 1 || argc > 5) {
+  if(argc != 2) {
     printf("Generates non-linear density boxes for a range of redshifts\n");
-    printf("usage: get_nldensity base_dir [zmin] [zmax] [dz]\n");
+    printf("usage: get_nldensity base_dir\n");
     printf("base_dir contains simfast21.ini and directory structure\n");
     exit(1);
   }  
   get_Simfast21_params(argv[1]);
-  if(argc > 2) {
-    zmin=atof(argv[2]);
-    if (zmin < global_Zminsim) zmin=global_Zminsim;
-    if(argc > 3) {
-      zmax=atof(argv[3]);
-      if(zmax>global_Zmaxsim) zmax=global_Zmaxsim;
-      if(argc==5) dz=atof(argv[4]); else dz=global_Dzsim;
-    }else {
-      zmax=global_Zmaxsim;
-      dz=global_Dzsim;
-    }
-    zmin=zmax-dz*ceil((zmax-zmin)/dz); /* make sure (zmax-zmin)/dz is an integer so that we get same redshifts starting from zmin or zmax...*/ 
-  }else {
-    zmin=global_Zminsim;
-    zmax=global_Zmaxsim;
-    dz=global_Dzsim;
-  }
+  zmin=global_Zminsim;
+  zmax=global_Zmaxsim;
+  dz=global_Dzsim;
+ 
 #ifdef _OMPTHREAD_
   omp_set_num_threads(global_nthreads);
   printf("Using %d threads\n",global_nthreads);
@@ -75,7 +62,7 @@ int main(int argc, char **argv){
     exit(1);
   }
   
-  sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L)); 
+  sprintf(fname, "%s/Velocity/vel_x_z0_N%ld_L%.1f.dat", argv[1],global_N_halo,(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading X velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realx,sizeof(float),global_N3_halo,fid);
@@ -84,7 +71,7 @@ int main(int argc, char **argv){
     printf("Problem vy...\n");
     exit(1);
   }
-  sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L)); 
+  sprintf(fname, "%s/Velocity/vel_y_z0_N%ld_L%.1f.dat", argv[1],global_N_halo,(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading Y velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realy,sizeof(float),global_N3_halo,fid);
@@ -94,7 +81,7 @@ int main(int argc, char **argv){
     exit(1);
   }
   
-  sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%d.dat", argv[1],global_N_halo,(int)(global_L)); 
+  sprintf(fname, "%s/Velocity/vel_z_z0_N%ld_L%.1f.dat", argv[1],global_N_halo,(global_L/global_hubble)); 
   fid=fopen(fname,"rb");	/* second argument contains name of input file */
   if (fid==NULL) {printf("\nError reading Z velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realz,sizeof(float),global_N3_halo,fid);
@@ -102,11 +89,11 @@ int main(int argc, char **argv){
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(map_veloc_realx,map_veloc_realy,map_veloc_realz,global_N_halo,global_N3_halo,global_L) private(ind)
 #endif  
-  //Calculo do campo de deslocamento linear
+  // Linear displacement field...
   for(ind=0;ind<global_N3_halo;ind++) {
-    map_veloc_realx[ind]*=(global_N_halo/global_L);
-    map_veloc_realy[ind]*=(global_N_halo/global_L);
-    map_veloc_realz[ind]*=(global_N_halo/global_L);
+    map_veloc_realx[ind]*=(global_N_halo/global_L)*global_hubble;  /* correct for the fact that now the velocity in file is in Mpc not Mpc/h */
+    map_veloc_realy[ind]*=(global_N_halo/global_L)*global_hubble;
+    map_veloc_realz[ind]*=(global_N_halo/global_L)*global_hubble;
   }
   printf("Velocity reading done...\n"); fflush(0);   
 
@@ -123,7 +110,7 @@ int main(int argc, char **argv){
     printf("Problem...\n");
     exit(1);
   }
-  sprintf(fname, "%s/delta/delta_z0_N%ld_L%d.dat", argv[1],global_N_halo, (int)(global_L));  
+  sprintf(fname, "%s/delta/delta_z0_N%ld_L%.1f.dat", argv[1],global_N_halo, (global_L/global_hubble));  
   fid=fopen(fname,"rb");	
   if (fid==NULL){printf("\nError reading density file... Check if the file exists...\n"); exit (1);}
   elem=fread(map_in,sizeof(float),global_N3_halo,fid);
@@ -142,7 +129,7 @@ int main(int argc, char **argv){
   /*********** Redshift cycle ********************************************/
   for(redshift=zmax;redshift>(zmin-dz/10.);redshift-=dz){
     
-    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L); 
+    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,(global_L/global_hubble)); 
     if((fid=fopen(fname,"rb"))!=NULL){  
       printf("File %s already exists - skipping...\n",fname);
       fclose(fid);
@@ -179,16 +166,16 @@ int main(int argc, char **argv){
       printf("Smoothing...\n");fflush(0);   
       smooth_boxb(map_out, map_out2, global_N_halo, global_N_smooth);
       printf("Writing...\n");fflush(0);   
-      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L); 
+      sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,(global_L/global_hubble)); 
       if((fid=fopen(fname,"wb"))==NULL){  
-	printf("\nError opening outpout nl_density file... Check path...\n");
+	printf("\nError opening output nl_density file... Check path...\n");
 	exit(1);
       } 
       elem=fwrite(map_out2,sizeof(float),global_N3_smooth,fid);                    
       fclose(fid);
     
       if(global_save_original_deltanl==1){
-	sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_halo,global_L); 
+	sprintf(fname, "%s/delta/deltanl_o_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_halo,(global_L/global_hubble)); 
 	if((fid=fopen(fname,"wb"))==NULL){  
 	  printf("\nError opening output nl_density file... Check path...\n");
 	  exit(1);

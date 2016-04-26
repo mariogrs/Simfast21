@@ -19,7 +19,7 @@ void get_Simfast21_params(char *basedir){
   
   char line[256],fname[300];
   int length,n;
-  char first[100], second[100], third[100];  
+  char first[100], third[100];  
   char *cpoint;
  
   length=256;
@@ -80,11 +80,12 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"halo_Rmax")==0)global_halo_Rmax=atof(third);
       else if(strcmp(first,"halo_Rmin_dx")==0)global_halo_Rmin_dx=atof(third);
       else if(strcmp(first,"halo_Mmin")==0)global_halo_Mmin=atof(third);
-      else if(strcmp(first,"halo_step")==0)global_Rhalo=atof(third);
+      else if(strcmp(first,"halo_Nbins")==0)global_Nhbins=atoi(third);
 
       /* Ionization */
       else if(strcmp(first,"Ion_eff")==0)global_eff=atof(third);
       else if(strcmp(first,"bubble_Rmax")==0)global_bubble_Rmax=atof(third);
+      else if(strcmp(first,"bubble_Nbins")==0)global_bubble_Nbins=atoi(third);
 
       /* xray + Lya */
       else if(strcmp(first,"use_Lya_xrays")==0){
@@ -118,14 +119,17 @@ void get_Simfast21_params(char *basedir){
       printf("No CAMB file. Exiting...\n");
       exit(1);
     }
-    sprintf(fname, "%s/%s",basedir,global_camb_file); 
+    sprintf(fname, "%s/%s",basedir,global_camb_file);
+    printf("Using cosmology from CAMB file: %s\n",fname);
     set_cosmology_fromCAMB(fname);
-  }
+  } else global_pk_flag=0;
   global_rho_m=global_omega_m*RHO_0/global_hubble;  /* units of M_sun/(Mpc/h)**3 */
   global_rho_b=global_omega_b*RHO_0/global_hubble;
   global_L=global_L*global_hubble;  /* Mpc/h */
   global_halo_Rmax=global_halo_Rmax*global_hubble;  /* Mpc/h */
+  if(global_halo_Rmax>global_L/2.0) global_halo_Rmax=global_L/2.0;
   global_bubble_Rmax=global_bubble_Rmax*global_hubble;  /* Mpc/h */
+  if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.; /* make sure maximum bubble radius is half the box size, e.g. one bubble over the all box... */
   global_flux_Rmax=global_flux_Rmax*global_hubble;  /* Mpc/h */
   global_L3=global_L*global_L*global_L;
   global_dk=2*PI/global_L;
@@ -136,8 +140,6 @@ void get_Simfast21_params(char *basedir){
   global_smooth_factor=global_N_halo/global_N_smooth;
   global_Zminsim=global_Zmaxsim-global_Dzsim*(double)ceil((global_Zmaxsim-global_Zminsim)/global_Dzsim); /* Make sure we include files for global_Zminsim */
   global_Zminsfr=global_Zmaxsim-global_Dzsim*(double)ceil((global_Zmaxsim-global_Zminsfr)/global_Dzsim);
-  if(global_halo_Rmax > global_L/2.) global_halo_Rmax=global_L/2.;
-  if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.;
 
   //  print_parms();
 
@@ -152,7 +154,7 @@ void set_cosmology_fromCAMB(char * paramfilename) {
   
   char line[256];
   int length,n;
-  char first[99], second[99], third[99];  
+  char first[99], third[99];  
   double ombh2,omch2,omk,w;
   char use_phys[99], root[99];
   char *cpoint;
@@ -214,7 +216,7 @@ void print_parms(void) {
   printf("global_N3_halo: %ld\n",global_N3_halo); //Total number of cells of the box for determination of collapsed halos 
   printf("global_N_smooth: %ld\n",global_N_smooth); // Linear number of cells of the smoothed boxes  
   printf("global_N3_smooth: %ld\n",global_N3_smooth); // Total number of cells of the smoothed boxes  
-  printf("global_smooth_factor: %ld\n",global_smooth_factor); //Just N_halo/N_smooth
+  printf("global_smooth_factor: %f\n",global_smooth_factor); //Just N_halo/N_smooth
   printf("global_L: %f Mpc/h\n",global_L); //Physical size of the simulation box
   printf("global_L3: %f (Mpc/h)^3\n",global_L3);//Physical volume of the simulation box
   printf("global_dx_halo: %f Mpc/h\n",global_dx_halo);
@@ -228,7 +230,7 @@ void print_parms(void) {
   printf("global_Zminsfr: %f\n",global_Zminsfr);
 
   /*-----------------------Cosmological parameters--------------------------- */
-  printf("global_sig8_new: %f\n",global_sig8_new);
+  if(global_pk_flag==0) printf("global_sig8_new: %f\n",global_sig8_new);
   printf("global_n_index: %f\n",global_n_index);
   printf("global_hubble: %f\n",global_hubble);
   printf("global_omega_m: %f\n",global_omega_m);
@@ -238,7 +240,7 @@ void print_parms(void) {
   printf("global_rho_b: %E\n",global_rho_b);
 
   /*------------------------Halo collapse parameters-----------------------------*/
-  printf("global_Rhalo: %f\n",global_Rhalo);
+  printf("global_halo_Nbins: %d\n",global_Nhbins);
   printf("global_use_sgrid: %d\n",global_use_sgrid);
   printf("global_delta_c: %f\n",global_delta_c);
   printf("global_STa: %f\n",global_STa);
@@ -252,7 +254,7 @@ void print_parms(void) {
   /*------------------------Ionization parameters-----------------------------*/
   printf("global_eff: %f\n",global_eff); //Efficiency parameter for determination of the ionization field
   printf("global_bubble_Rmax: %f Mpc/h\n",global_bubble_Rmax);
-
+  printf("global_bubble_Nbins: %d\n",global_bubble_Nbins);
 
   /*----------Variables for reading matter power spectrum from file-------- */
   printf("global_pk_flag: %d\n",global_pk_flag); // Matter power spectrum: 0 - Eisenstein & Hu fitting formulae; 1 - Read form file (Output of CMBFast, CAMB)

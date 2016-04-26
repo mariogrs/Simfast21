@@ -3,6 +3,7 @@
 SimFast21
 Auxiliar code - 2014
 Description: Calculates halo dn/dm for a given halo catalogue. Uses same bins and mass range as simulation.
+Uses logarithmic binning and same mass bins as the simulation.
 Also calculates theoretical mass function
 *********************************************************************************************************/
 
@@ -25,10 +26,10 @@ int main(int argc, char **argv){
   Halo_t *halo_v;
   size_t elem;
   char fname[300];
-  double mass, dm,z, m1, m2, dmi, dndma;
+  double mass, dm,z, m1, m2, dmi, dndma,m3;
   long int ind, i, j;
-  double Mmin, Mmax, Mup; 
-  double dlm;
+  double Mmin, Mmax; 
+  double dlm, R_lim, halo_mass;
   double dndm[10000];
   int N;
   int nint=20;
@@ -57,25 +58,28 @@ int main(int argc, char **argv){
   }
   elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);  
   fclose(fid);
-      
-  printf("#Searching through halo catalog...\n");fflush(0);
-  Mmin=(double)halo_v[0].Mass;
-  Mmax=(double)halo_v[0].Mass;
-  for(i=0;i<nhalos;i++){
-    mass=(double)halo_v[i].Mass;
-    if(mass > Mmax) Mmax=mass;
-    if(mass < Mmin) Mmin=mass;
+
+  if(global_use_sgrid==1)
+    Mmin=global_halo_Mmin;
+  else {
+    if(global_halo_Rmin_dx < 2) {
+      R_lim=1.0*global_dx_halo;
+    }else {
+      R_lim=global_halo_Rmin_dx*global_dx_halo;
+    }
+    Mmin=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3);
+    if(Mmin <= global_halo_Mmin+10.) Mmin=global_halo_Mmin;
   }
-  dlm=3*log10(global_Rhalo);
-  printf("Mmax: %E    Mmin: %E     dlm: %E\n", Mmax, Mmin, dlm);
-  Mup=Mmax*pow(global_Rhalo,3);
-  N=(int)roundf((log10(Mup)-log10(Mmin))/dlm)+1;
-  printf("N: %d\n", N);
+  Mmax=(4.0/3.0)*PI*global_rho_m*pow(global_halo_Rmax,3);
+  dlm=log10(Mmax/Mmin)/global_Nhbins;
+  N=global_Nhbins+1;
+  printf("# Mmin: %E     dlm: %E\n", Mmin, dlm);
+  printf("# N bins: %d\n", N);
   ntot=0;
   for(i=0;i<N;i++) dndm[i]=0.0;
   for(i=0;i<nhalos;i++){
     mass=(double)halo_v[i].Mass;
-    ind=(int)roundf((log10((mass)/Mmin)/dlm));
+    ind=(int)roundf((log10((mass+0.1)/Mmin)/dlm));
     dndm[ind]+=1.0;
     ntot++;
   }
@@ -84,12 +88,13 @@ int main(int argc, char **argv){
     exit(1);
   }
   printf("# Total number of halos in catalogue: %ld, average number of halos per cell: %E\n",ntot, 1.0*ntot/global_N3_halo);
-  printf("# Number density: %E (h/Mpc)^3, dn/dm for total mass range: %E (h/Mpc)^3/Msun\n",1.0*ntot/global_L3,1.0*ntot/global_L3/(Mup-Mmin));
+  printf("# Number density: %E (h/Mpc)^3, dn/dm for total mass range: %E (h/Mpc)^3/Msun\n",1.0*ntot/global_L3,1.0*ntot/global_L3/(Mmax-Mmin));
   printf("\n# Mass [Msun]    dndm [(h/Mpc)^3/Msun]\n");
-  printf("\n#  Mass_1         Mass_2      dndm_sim       dndm_calc\n");
+  printf("\n#  Mass_1         Mass_2         Mass_3      dndm_sim       dndm_calc\n");
   for(i=0;i<N;i++) {
     m1=Mmin*pow(10,i*dlm);
     m2=Mmin*pow(10,(i+1)*dlm);
+    m3=Mmin*pow(10,(i+1.0/2)*dlm);
     dmi=log(m2/m1)/nint;
     dndma=0.0;
     for(j=0;j<nint;j++) {
@@ -97,7 +102,7 @@ int main(int argc, char **argv){
       dndma+=mass_function_ST(z,mass)*mass;  /* mass_function_ST in 1/Msun/(Mpc/h)^3 - comoving volume (times mass because of log integration) */
     }
     dndma=dndma*dmi;
-    printf("%E   %E  %E  %E\n",m1, m2, dndm[i]/global_L3/(m2-m1),dndma/(m2-m1));
+    printf("%E   %E   %E   %E  %E\n",m1, m2, m3, dndm[i]/global_L3/(m2-m1),dndma/(m2-m1));
   }
   printf("\n");
   

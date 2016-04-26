@@ -88,7 +88,7 @@ int main(int argc, char * argv[]) {
   /* Check for correct number of parameters*/
   if (argc != 2) {
     printf("Usage : xalpha base_dir\n");
-    exit(0);
+    exit(1);
   }
   
   get_Simfast21_params(argv[1]);
@@ -130,7 +130,7 @@ int main(int argc, char * argv[]) {
       exit(1);
     }
   fclose(file);    
-  sprintf(fname,"%s/Output_text_files/sfrd_av_N%ld_L%.0f.dat",argv[1],global_N_smooth,global_L);
+  sprintf(fname,"%s/Output_text_files/sfrd_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble);
   if((file = fopen(fname,"r"))==NULL) {
     printf("Error opening file:%s\n",fname);
     exit(1);
@@ -145,7 +145,7 @@ int main(int argc, char * argv[]) {
     sfra[nzsfr-1-i]*=Msun/mbar*global_hubble*global_hubble*global_hubble; /* starts with highest redshift! */
   }
   fclose(file);
-  sprintf(fname,"%s/Output_text_files/xa_av_N%ld_L%.0f.dat",argv[1],global_N_smooth,global_L); 
+  sprintf(fname,"%s/Output_text_files/xa_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble); 
   if((fidtxt=fopen(fname,"a"))==NULL){
     printf("\nError opening output %s file...\n",fname); 
     exit(1);
@@ -158,7 +158,7 @@ int main(int argc, char * argv[]) {
     /* our box is at nzbox */
    
     printf("\n\nztocompute: %f\n",zbox[nzbox]);fflush(0);
-    sprintf(fname,"%s/Lya/xalpha_z%.3lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L);
+    sprintf(fname,"%s/Lya/xalpha_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
     if((file = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping this redshift...\n",fname);
       fclose(file);
@@ -200,7 +200,7 @@ int main(int argc, char * argv[]) {
 	
 	printf("Convolving box %d\n",box);fflush(0);
 	/*Load the box in memory */
-	sprintf(fname,"%s/SFR/sfrd_z%.3lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox+box],global_N_smooth,global_L);
+	sprintf(fname,"%s/SFR/sfrd_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox+box],global_N_smooth,global_L/global_hubble);
 	if((file = fopen(fname,"r"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -275,7 +275,7 @@ int main(int argc, char * argv[]) {
 	aver1+=Jalpha[i];
       }
       for(i=0;i<global_N3_smooth;i++) sfrt[i]=(float)Jalpha[i];    
-      sprintf(fname,"%s/Lya/xalpha_z%.3lf_N%ld_L%.0f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L);
+      sprintf(fname,"%s/Lya/xalpha_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
       if((file = fopen(fname,"wb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);

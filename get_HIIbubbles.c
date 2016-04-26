@@ -25,7 +25,6 @@ M. G. Santos, L. Ferramacho, M. B. Silva, A. Amblard, A. Cooray, MNRAS 2010, htt
 #include "Input_variables.h"
 #include "auxiliary.h"
 
-#define bfactor 1.1  /* value by which to divide bubble size R */
 #define xHlim 0.999 /* cutoff limit for bubble calculation */
 #define FFTWflag FFTW_MEASURE  /* PATIENT is too slow... */
 //#define FFTWflag FFTW_PATIENT  /* PATIENT is too slow... */
@@ -42,6 +41,7 @@ int main(int argc, char *argv[]) {
   int flag_bub,iz;
   double redshift,tmp;
   double kk;
+  double bfactor; /* value by which to divide bubble size R */
   double neutral,*xHI;
   float *halo_map, *top_hat_r, *density_map,*bubblef, *bubble;  
   fftwf_complex *halo_map_c, *top_hat_c, *collapsed_mass_c, *density_map_c, *total_mass_c, *bubble_c;
@@ -50,30 +50,19 @@ int main(int argc, char *argv[]) {
   double R;
   
   
-  if(argc == 1 || argc > 5) {
+  if(argc != 2) {
     printf("Generates boxes with ionization fraction for a range of redshifts\n");
-    printf("usage: get_HIIbubbles base_dir [zmin] [zmax] [dz]\n");
+    printf("usage: get_HIIbubbles base_dir\n");
     printf("base_dir contains simfast21.ini and directory structure\n");
     exit(1);
   }  
   get_Simfast21_params(argv[1]);
-  if(argc > 2) {
-    zmin=atof(argv[2]);
-    if (zmin < global_Zminsim) zmin=global_Zminsim;
-    if(argc > 3) {
-      zmax=atof(argv[3]);
-      if(zmax>global_Zmaxsim) zmax=global_Zmaxsim;
-      if(argc==5) dz=atof(argv[4]); else dz=global_Dzsim;
-    }else {
-      zmax=global_Zmaxsim;
-      dz=global_Dzsim;
-    }
-    zmin=zmax-dz*ceil((zmax-zmin)/dz); /* make sure (zmax-zmin)/dz is an integer so that we get same redshifts starting from zmin or zmax...*/ 
-  }else {
-    zmin=global_Zminsim;
-    zmax=global_Zmaxsim;
-    dz=global_Dzsim;
-  }
+  zmin=global_Zminsim;
+  zmax=global_Zmaxsim;
+  dz=global_Dzsim;
+  bfactor=pow(10.0,log10(global_bubble_Rmax/global_dx_smooth)/global_bubble_Nbins);
+  printf("Bubble radius ratio (bfactor): %f\n", bfactor); fflush(0);
+ 
 #ifdef _OMPTHREAD_
   omp_set_num_threads(global_nthreads);
   fftwf_init_threads();
@@ -186,6 +175,8 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
+
+  
   /****************************************************/
   /***************** Redshift cycle *******************/
   printf("Number of bubble sizes: %d\n",(int)((log(global_bubble_Rmax)-log(2.*global_dx_smooth))/log(bfactor)));
@@ -195,7 +186,7 @@ int main(int argc, char *argv[]) {
   for(redshift=zmin;redshift<(zmax+dz/10) && (neutral < xHlim);redshift+=dz){    
     printf("z = %f\n",redshift);fflush(0);
 
-    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L); 
+    sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading deltanl file... Check path or if the file exists..."); exit (1);}
     elem=fread(density_map,sizeof(float),global_N3_smooth,fid);
@@ -208,7 +199,7 @@ int main(int argc, char *argv[]) {
       density_map[i]=(1.0+density_map[i])*global_rho_m*global_dx_smooth*global_dx_smooth*global_dx_smooth; /* total mass in 1 cell */
       bubblef[i]=0.0;
     }
-    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.0f.dat",argv[1],redshift,global_N_smooth,global_L); 
+    sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
     elem=fread(halo_map,sizeof(float),global_N3_smooth,fid);
@@ -230,11 +221,12 @@ int main(int argc, char *argv[]) {
     fftwf_execute(pr2c1);    
     fftwf_execute(pr2c2);
 
+    
     /************** going over the bubble sizes ****************/
     R=global_bubble_Rmax;    /* Maximum bubble size...*/
     while(R>=2*global_dx_smooth){ 
     
-      printf("R= %lf\n", R);fflush(0);    
+      printf("bubble radius R= %lf\n", R);fflush(0);    
       //      printf("Filtering halo and density boxes...\n");fflush(0);
     
 #ifdef _OMPTHREAD_
@@ -330,9 +322,9 @@ int main(int argc, char *argv[]) {
  
     /* just to check smallest bubbles through older method */
     printf("Going to smaller R cycle...\n"); fflush(0);
-    while(R>global_dx_smooth){ /* removed = global_dx_smooth since this was checked at the beginning */ 
+    while(R>=global_dx_smooth){
   
-      printf("R= %lf\n", R);fflush(0); 
+      printf("bubble radius R= %lf\n", R);fflush(0); 
       flag_bub=0;
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(collapsed_mass_c,halo_map_c,total_mass_c,density_map_c,global_N_smooth,global_dx_smooth,global_dk,R) private(i,j,p,indi,indj,kk)
@@ -399,7 +391,7 @@ int main(int argc, char *argv[]) {
     neutral/=global_N3_smooth;
     printf("neutral fraction=%lf\n",neutral);fflush(0);
     xHI[iz]=neutral;
-    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.0f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L); 
+    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
     if((fid = fopen(fname,"wb"))==NULL) {
       printf("Error opening file:%s\n",fname);
       exit(1);
@@ -414,7 +406,7 @@ int main(int argc, char *argv[]) {
   while(redshift<(zmax+dz/10)) {
     printf("z(>%f) = %f\n",xHlim,redshift);fflush(0);
     xHI[iz]=1.0;
-    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.0f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L); 
+    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
     if((fid = fopen(fname,"wb"))==NULL) {
       printf("Error opening file:%s\n",fname);
       exit(1);
@@ -436,7 +428,7 @@ int main(int argc, char *argv[]) {
   }
   for(redshift=zmax;redshift>(zmin-dz/10);redshift-=dz) fprintf(fid,"%f\n",redshift); /* first line should be highest redshift */
   fclose(fid);
-  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.0f.dat",argv[1],global_eff,global_N_smooth,global_L);
+  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.1f.dat",argv[1],global_eff,global_N_smooth,global_L/global_hubble);
   if((fid = fopen(fname,"a"))==NULL) {
     printf("Error opening file:%s\n",fname);
     exit(1);

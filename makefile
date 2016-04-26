@@ -8,7 +8,7 @@ omp = -fopenmp -D_OMPTHREAD_
 gsl = -lgsl -lgslcblas
 deb = -g
 #flags = -std=c99 -Wall -O3 -march=native $(fftwd) $(fftwf) $(omp) $(gsl) -lm
-flags = -std=c99 -Wall -O3 $(fftwd) $(fftwf) $(omp) $(gsl) -lm
+flags = -std=c99 -Wall -O3 $(fftwd) $(fftwf) $(omp) $(gsl) -lm -I .
 
 aux = auxiliary.o Input_variables.o 
 
@@ -17,7 +17,7 @@ simfast21: get_densityfield get_velocityfield \
      get_halos get_nldensity adjust_halos get_halo_deltan\
      get_HIIbubbles get_SFR \
      xalpha xc epsilonXon integratexe \
-     integrateTempX t21 opdepth get_dndmc adndm abias \
+     integrateTempX t21 opdepth get_dndm get_dndm_nbins adndm abias \
      power3d rz
 
 %.o: %.c auxiliary.h Input_variables.h
@@ -34,21 +34,6 @@ get_halos: $(aux) get_halos.o
 
 adjust_halos: $(aux) adjust_halos.o
 	$(cc) -o adjust_halos.x adjust_halos.o $(aux) $(flags)
-
-get_halo_deltan: $(aux) get_halo_deltan.o
-	$(cc) -o get_halo_deltan.x get_halo_deltan.o $(aux) $(flags)
-
-get_dndmc: $(aux) get_dndmc.o
-	$(cc) -o get_dndmc.x get_dndmc.o $(aux) $(flags)
-
-adndm: $(aux) adndm.o
-	$(cc) -o adndm.x adndm.o $(aux) $(flags)
-
-abias: $(aux) abias.o
-	$(cc) -o abias.x abias.o $(aux) $(flags)
-
-rz: $(aux) rz.o
-	$(cc) -o rz.x rz.o $(aux) $(flags)
 
 get_nldensity: $(aux) get_nldensity.o
 	$(cc) -o get_nldensity.x get_nldensity.o $(aux) $(flags)
@@ -77,12 +62,32 @@ integrateTempX: $(aux) integrateTempX.o
 t21: $(aux) t21.o
 	$(cc) -o t21.x t21.o $(aux) $(flags)
 
-power3d: power3d.o
-	$(cc) -o power3d.x power3d.o $(flags)
+#tools
+get_halo_deltan: $(aux) tools/get_halo_deltan.o
+	$(cc) -o tools/get_halo_deltan.x tools/get_halo_deltan.o $(aux) $(flags)
 
-opdepth: Input_variables.o opdepth.o
-	$(cc) -o opdepth.x opdepth.o Input_variables.o -std=c99 -Wall -O3 -lm 
+get_dndm: $(aux) tools/get_dndm.o
+	$(cc) -o tools/get_dndm.x tools/get_dndm.o $(aux) $(flags)
+
+get_dndm_nbins: $(aux) tools/get_dndm_nbins.o
+	$(cc) -o tools/get_dndm_nbins.x tools/get_dndm_nbins.o $(aux) $(flags)
+
+adndm: $(aux) tools/adndm.o
+	$(cc) -o tools/adndm.x tools/adndm.o $(aux) $(flags)
+
+abias: $(aux) tools/abias.o
+	$(cc) -o tools/abias.x tools/abias.o $(aux) $(flags)
+
+rz: $(aux) tools/rz.o
+	$(cc) -o tools/rz.x tools/rz.o $(aux) $(flags)
+
+power3d: tools/power3d.o
+	$(cc) -o tools/power3d.x tools/power3d.o $(flags)
+
+opdepth: Input_variables.o tools/opdepth.o
+	$(cc) -o tools/opdepth.x tools/opdepth.o Input_variables.o -std=c99 -Wall -O3 -lm 
 
 clean:
-	rm *.o *.x
+	rm *.o *.x tools/*.o tools/*.x
+
 
