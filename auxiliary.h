@@ -62,6 +62,7 @@ void box_symmetriesd(double complex *box, long int N);
 void box_symmetriesf(float complex *box, long int N);
 void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos);
 void get_collapsed_mass_boxb(float* halo_box,Halo_t *halo, long int nhalos);
+void CIC_smoothing(float x1, float y1, float z1, float *map_in, float *map_out);
 
 
 
