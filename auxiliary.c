@@ -782,14 +782,14 @@ void CIC_smoothing(float x1, float y1, float z1, float *map_in, float *map_out){
           z1 = fabsf(z1);
         }
         /*********************check periodic boundaries*************************/
-        x=check_borders(x,global_N_smooth);
-        y=check_borders(y,global_N_smooth);
-        z=check_borders(z,global_N_smooth);
+        x=check_borders(x,global_N_halo);
+        y=check_borders(y,global_N_halo);
+        z=check_borders(z,global_N_halo);
         /****************chaning ratios for different directions ***************/
         if(i1 == 1) x1 = 1.0 - x1;
         if(j1 == 1) y1 = 1.0 - y1;
         if(p1 == 1) z1 = 1.0 - z1;
-        map_out[x*global_N_smooth*global_N_smooth+y*global_N_smooth+z] += (1.0 - x1)*(1.0 - y1)*(1.0 - z1)*map_in[ind];
+        map_out[x*global_N_halo*global_N_halo+y*global_N_halo+z] += (1.0 - x1)*(1.0 - y1)*(1.0 - z1)*map_in[ind];
         /********************* go back the parent cell original coordinates and ratios ***************************/
         x -= i1;
         y -= j1;
