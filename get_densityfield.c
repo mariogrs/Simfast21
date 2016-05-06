@@ -4,7 +4,7 @@ SimFast21
 Name: get_densityfield										     
 Description: This routines generates a Monte Carlo realization of the linear density field 
 normalized by the matter power spectrum form the Eisenstein&Hu fitting formulae (or CAMB) at z=0
-Output: delta at z=0 (not the density but the fluctutation: density/average-1
+Output: delta at z=0 (not the density but the fluctutation: density/average-1, box size in Mpc
 ****************************************************************************************************/
 
 #include <math.h>
@@ -196,7 +196,7 @@ int main(int argc, char **argv){
       }else indj=j;  
       for(p=0;p<=global_N_halo/2;p++) {	
         /* 3d vector k (frequency) is just (indi, indj, p)*global_dk (global_dk is the moduli of the unit vector) */
-        kk=global_dk*sqrt(indi*indi+indj*indj+p*p);
+        kk=global_dk*sqrt(indi*indi+indj*indj+p*p);  /* in h/Mpc */
 	map_in[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]*=deltaK(kk, global_pk_flag, &tf);
       }
     }

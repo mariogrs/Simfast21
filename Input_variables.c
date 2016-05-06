@@ -132,7 +132,7 @@ void get_Simfast21_params(char *basedir){
   if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.; /* make sure maximum bubble radius is half the box size, e.g. one bubble over the all box... */
   global_flux_Rmax=global_flux_Rmax*global_hubble;  /* Mpc/h */
   global_L3=global_L*global_L*global_L;
-  global_dk=2*PI/global_L;
+  global_dk=2*PI/global_L;  /* h/Mpc */
   global_dx_halo=global_L/global_N_halo;
   global_dx_smooth=global_L/global_N_smooth;
   global_N3_halo=global_N_halo*global_N_halo*global_N_halo;
