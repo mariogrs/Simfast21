@@ -218,8 +218,8 @@ int main(int argc, char *argv[]) {
       if(tmp>=1.0) bubblef[i]=1.0; else bubblef[i]=tmp;
     }
     /* FFT density and halos */
-    fftwf_execute(pr2c1);    
-    fftwf_execute(pr2c2);
+    fftwf_execute(pr2c1);    /* FFT density map */
+    fftwf_execute(pr2c2);   /* FFT halo map */
 
     
     /************** going over the bubble sizes ****************/
@@ -248,8 +248,8 @@ int main(int argc, char *argv[]) {
 	}
       }
       
-      fftwf_execute(pc2r1);     
-      fftwf_execute(pc2r2); 
+      fftwf_execute(pc2r1);     /* FFT back filtered density map */
+      fftwf_execute(pc2r2);     /* FFT back filtered halo map */
       
       flag_bub=0;
       
@@ -257,7 +257,7 @@ int main(int argc, char *argv[]) {
 
       /* signal center of bubbles */      
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(halo_map,density_map,bubble,global_N_smooth,global_eff,flag_bub) private(ii,ij,ik,ind)
+#pragma omp parallel for shared(halo_map,density_map, bubble, global_N_smooth,global_eff,flag_bub) private(ii,ij,ik,ind)
 #endif  
       for(ii=0;ii<global_N_smooth;ii++){
 	for(ij=0;ij<global_N_smooth;ij++){
@@ -294,8 +294,8 @@ int main(int argc, char *argv[]) {
 	  }
 	}
 	/* FFT bubble centers and window */ 
-	fftwf_execute(pr2c3);
-	fftwf_execute(pr2c4);
+	fftwf_execute(pr2c3); /* FFT window */
+	fftwf_execute(pr2c4); /* FFT ionisation (bubble) box */
       
 	/* Make convolution */
 #ifdef _OMPTHREAD_
@@ -304,9 +304,9 @@ int main(int argc, char *argv[]) {
 	for(i=0;i<global_N_smooth*global_N_smooth*(global_N_smooth/2+1);i++) {
 	  bubble_c[i]*=top_hat_c[i];
 	}
-	fftwf_execute(pc2r3);     
+	fftwf_execute(pc2r3);     /* FFT back to real ionisation (bubble) box */
 	
-	/* after dividing by global_N3_smooth, values in bubble are between 0 (neutral)and global_N3_smooth */     
+	/* after dividing by global_N3_smooth, values in bubble are between 0 (neutral)and global_N3_smooth  - this is now the full resolution box! (not the one smoothed over the scale) */     
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(bubble,bubblef,global_N3_smooth) private(i)
 #endif
@@ -344,8 +344,8 @@ int main(int argc, char *argv[]) {
 	  }
 	}
       }
-      fftwf_execute(pc2r1); 
-      fftwf_execute(pc2r2); 
+      fftwf_execute(pc2r1);  /* FFT convolved density field - gives smoothed real density field */
+      fftwf_execute(pc2r2);  /* FFT convolved halo filed - gives smoothed real halo field */
    
       /* fill smaller bubbles in box */
       ncells_1D=(long int)(R/global_dx_smooth);    
