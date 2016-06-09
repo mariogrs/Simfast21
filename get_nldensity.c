@@ -156,7 +156,7 @@ int main(int argc, char **argv){
 	    x1=i + map_veloc_realx[ind]*growth;
             y1=j + map_veloc_realy[ind]*growth;
             z1=p + map_veloc_realz[ind]*growth;
-	    CIC_smoothing(x1, y1, z1, map_in, map_out);
+	    CIC_smoothing(x1, y1, z1, map_in[ind], map_out);
 	  }
 	}
       }
