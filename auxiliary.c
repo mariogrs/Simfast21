@@ -753,7 +753,7 @@ void get_collapsed_mass_boxb(float* halo_box,Halo_t *halo, long int nhalos){
 }    
 
 
-void CIC_smoothing(float x1, float y1, float z1, float *map_in, float *map_out){
+void CIC_smoothing(float x1, float y1, float z1, float map_in, float *map_out){
 
   long int i1,j1,p1,x,y,z;
   x = (long int) x1;
@@ -789,7 +789,7 @@ void CIC_smoothing(float x1, float y1, float z1, float *map_in, float *map_out){
         if(i1 == 1) x1 = 1.0 - x1;
         if(j1 == 1) y1 = 1.0 - y1;
         if(p1 == 1) z1 = 1.0 - z1;
-        map_out[x*global_N_halo*global_N_halo+y*global_N_halo+z] += (1.0 - x1)*(1.0 - y1)*(1.0 - z1)*map_in[ind];
+        map_out[x*global_N_halo*global_N_halo+y*global_N_halo+z] += (1.0 - x1)*(1.0 - y1)*(1.0 - z1)*map_in;
         /********************* go back the parent cell original coordinates and ratios ***************************/
         x -= i1;
         y -= j1;
