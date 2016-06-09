@@ -25,7 +25,6 @@ M. G. Santos, L. Ferramacho, M. B. Silva, A. Amblard, A. Cooray, MNRAS 2010, htt
 #include "Input_variables.h"
 #include "auxiliary.h"
 
-#define xHlim 0.999 /* cutoff limit for bubble calculation */
 #define FFTWflag FFTW_MEASURE  /* PATIENT is too slow... */
 //#define FFTWflag FFTW_PATIENT  /* PATIENT is too slow... */
 
@@ -183,7 +182,7 @@ int main(int argc, char *argv[]) {
   printf("Redshift cycle...\n");fflush(0);
   iz=0;
   neutral=0.;
-  for(redshift=zmin;redshift<(zmax+dz/10) && (neutral < xHlim);redshift+=dz){    
+  for(redshift=zmin;redshift<(zmax+dz/10) && (neutral < global_xHlim);redshift+=dz){    
     printf("z = %f\n",redshift);fflush(0);
 
     sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
@@ -199,6 +198,8 @@ int main(int argc, char *argv[]) {
       density_map[i]=(1.0+density_map[i])*global_rho_m*global_dx_smooth*global_dx_smooth*global_dx_smooth; /* total mass in 1 cell */
       bubblef[i]=0.0;
     }
+
+    // NOTE!! this needs to be changed - now the adjust_halos.c writes the nonlinear catalog directly
     sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
@@ -404,7 +405,7 @@ int main(int argc, char *argv[]) {
 
   /* z cycle for neutral>=xHlim */
   while(redshift<(zmax+dz/10)) {
-    printf("z(>%f) = %f\n",xHlim,redshift);fflush(0);
+    printf("z(>%f) = %f\n",global_xHlim,redshift);fflush(0);
     xHI[iz]=1.0;
     sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
     if((fid = fopen(fname,"wb"))==NULL) {
