@@ -126,9 +126,9 @@ int main(int argc, char **argv){
 #pragma omp parallel for shared(nhalos,halo_v,map_veloc_realx,map_veloc_realy,map_veloc_realz,global_N_halo) private(i,indice,x,y,z)
 #endif  
     for(i=0;i<nhalos;i++){
-      x= halo_v[i].x;     
-      y= halo_v[i].y;  
-      z= halo_v[i].z;    
+      x= (long int)halo_v[i].x;     
+      y= (long int)halo_v[i].y;  
+      z= (long int)halo_v[i].z;    
       indice=(long int)(x*global_N_halo*global_N_halo+y*global_N_halo+z);
       x += (long int)(map_veloc_realx[indice]*growth);         
       y += (long int)(map_veloc_realy[indice]*growth);         
@@ -136,9 +136,9 @@ int main(int argc, char **argv){
       x=check_borders(x,global_N_halo);
       y=check_borders(y,global_N_halo);
       z=check_borders(z,global_N_halo);
-      halo_v[i].x=x;
-      halo_v[i].y=y;
-      halo_v[i].z=z;   
+      halo_v[i].x=(int)x;
+      halo_v[i].y=(int)y;
+      halo_v[i].z=(int)z;   
     }
 
     printf("Writing full non-linear halo catalog\n");fflush(0);
@@ -147,6 +147,7 @@ int main(int argc, char **argv){
       printf("\nError opening Halonl output catalog\n");
       return 0;
     }
+    elem=fwrite(&nhalos,sizeof(long int),1,fid);
     elem=fwrite(halo_v,sizeof(Halo_t),nhalos,fid); 
     fclose(fid);
     

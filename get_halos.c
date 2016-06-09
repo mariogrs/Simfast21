@@ -320,9 +320,9 @@ int main(int argc, char **argv){
 	      Pnhalos = gsl_ran_poisson(rpoisson,dndm_av);
 	      nn=(int)round(Pnhalos*(1.0+tempv));
 	      for (ii = 0; ii < nn; ii++) {
-		halo_cat[nhalos_cat].x=i;
-		halo_cat[nhalos_cat].y=j;
-		halo_cat[nhalos_cat].z=p;
+		halo_cat[nhalos_cat].x=(int)i;
+		halo_cat[nhalos_cat].y=(int)j;
+		halo_cat[nhalos_cat].z=(int)p;
 		halo_cat[nhalos_cat].Mass=halo_mass;
 		nhalos_R++;
 		nhalos_cat++;
