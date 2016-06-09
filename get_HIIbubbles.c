@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
 #pragma omp parallel for shared(global_N3_smooth, density_map,global_rho_m, global_dx_smooth,bubblef) private(i)
 #endif
     for(i=0;i<(global_N3_smooth);i++){
-      fresid[i] = (1. + fresid[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift);
+      fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift);
       fresid[i] = XHI(fresid[i]);
       density_map[i]= Rrec(1.0+density_map[i], redshift);
       bubblef[i]=0.0;
