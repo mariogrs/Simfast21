@@ -164,7 +164,7 @@ int main(int argc, char * argv[]) {
       exit(1);
     }
   fclose(file);    
-  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.1f.dat",argv[1],global_eff,global_N_smooth,global_L/global_hubble);
+  sprintf(fname, "%s/Output_text_files/x_HI_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble);
   if((file = fopen(fname,"r"))==NULL) {
     printf("Error opening file:%s\n",fname);
     exit(1);
@@ -240,7 +240,7 @@ int main(int argc, char * argv[]) {
       
       /*Initialize some variables*/  
       memset(Epsilon,0,global_N3_smooth*sizeof(double));
-      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_eff,global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/Ionization/xHII_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
       printf("Read ioni file %s\n",fname);fflush(0);
       if((file = fopen(fname,"r"))==NULL) {
 	printf("Error opening file:%s\n",fname);

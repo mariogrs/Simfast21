@@ -83,7 +83,6 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"halo_Nbins")==0)global_Nhbins=atoi(third);
 
       /* Ionization */
-      else if(strcmp(first,"Ion_eff")==0)global_eff=atof(third);
       else if(strcmp(first,"Ion_cutoff")==0)global_xHlim=atof(third);
       else if(strcmp(first,"bubble_Rmax")==0)global_bubble_Rmax=atof(third);
       else if(strcmp(first,"bubble_Nbins")==0)global_bubble_Nbins=atoi(third);
@@ -253,7 +252,6 @@ void print_parms(void) {
 
 
   /*------------------------Ionization parameters-----------------------------*/
-  printf("global_eff: %f\n",global_eff); //Efficiency parameter for determination of the ionization field
   printf("global_xHlim: %f\n",global_xHlim); //neutral fraction cutoff
   printf("global_bubble_Rmax: %f Mpc/h\n",global_bubble_Rmax);
   printf("global_bubble_Nbins: %d\n",global_bubble_Nbins);

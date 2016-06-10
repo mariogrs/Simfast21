@@ -231,12 +231,12 @@ int main(int argc, char *argv[]) {
 
     /* Quick fill of single cells before going to bubble cycle */
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(global_N3_smooth,halo_map,density_map,global_eff,bubblef) private(i,tmp)
+#pragma omp parallel for shared(global_N3_smooth,halo_map,density_map,bubblef) private(i,tmp)
 #endif
     for(i=0;i<global_N3_smooth;i++) {
       if(halo_map[i]>0.) {
 	if(density_map[i]>0.) 
-	  tmp=(double)halo_map[i]*global_eff/density_map[i];
+	  tmp=(double)halo_map[i]/density_map[i];
 	else tmp=1.0;
       }else tmp=0.;
       if(tmp>=1.0) bubblef[i]=1.0; else bubblef[i]=tmp;
@@ -281,7 +281,7 @@ int main(int argc, char *argv[]) {
 
       /* signal center of bubbles */      
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(halo_map,density_map, bubble, global_N_smooth,global_eff,flag_bub) private(ii,ij,ik,ind)
+#pragma omp parallel for shared(halo_map,density_map, bubble, global_N_smooth,flag_bub) private(ii,ij,ik,ind)
 #endif  
       for(ii=0;ii<global_N_smooth;ii++){
 	for(ij=0;ij<global_N_smooth;ij++){
@@ -289,7 +289,7 @@ int main(int argc, char *argv[]) {
 	    ind=ii*global_N_smooth*global_N_smooth+ij*global_N_smooth+ik;
 	    if(halo_map[ind]>0.) {
 	      if(density_map[ind]>0.) { 
-		if((double)halo_map[ind]/density_map[ind]>=1.0/global_eff) {
+		if((double)halo_map[ind]/density_map[ind]>=1.0) {
 		  flag_bub=1;
 		  bubble[ind]=1.0;  	     	    	    
 		}else bubble[ind]=0;
@@ -375,14 +375,14 @@ int main(int argc, char *argv[]) {
       ncells_1D=(long int)(R/global_dx_smooth);    
       //      printf("Starting to find and fill bubbles...\n");fflush(0);
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(halo_map,density_map,global_eff,global_N_smooth,global_dx_smooth,R,ncells_1D,bubblef,flag_bub) private(ii_c,ij_c,ik_c,ii,ij,ik,a,b,c,ind)
+#pragma omp parallel for shared(halo_map,density_map,global_N_smooth,global_dx_smooth,R,ncells_1D,bubblef,flag_bub) private(ii_c,ij_c,ik_c,ii,ij,ik,a,b,c,ind)
 #endif
       for(ii_c=0;ii_c<global_N_smooth;ii_c++){
 	for(ij_c=0;ij_c<global_N_smooth;ij_c++){
 	  for(ik_c=0;ik_c<global_N_smooth;ik_c++){
 	    ind=ii_c*global_N_smooth*global_N_smooth+ij_c*global_N_smooth+ik_c;
 	    if(halo_map[ind]>0.) {
-	      if(!(density_map[ind]>0.) || ((double)halo_map[ind]/density_map[ind]>=1.0/global_eff)) {
+	      if(!(density_map[ind]>0.) || ((double)halo_map[ind]/density_map[ind]>=1.0)) {
 		flag_bub=1;
 		for(ii=-(ncells_1D+1);ii<=ncells_1D+1;ii++){
 		  a=check_borders(ii_c+ii,global_N_smooth);
@@ -419,7 +419,7 @@ int main(int argc, char *argv[]) {
     neutral/=global_N3_smooth;
     printf("neutral fraction=%lf\n",neutral);fflush(0);
     xHI[iz]=neutral;
-    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
+    sprintf(fname, "%s/Ionization/xHII_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     if((fid = fopen(fname,"wb"))==NULL) {
       printf("Error opening file:%s\n",fname);
       exit(1);
@@ -434,7 +434,7 @@ int main(int argc, char *argv[]) {
   while(redshift<(zmax+dz/10)) {
     printf("z(>%f) = %f\n",global_xHlim,redshift);fflush(0);
     xHI[iz]=1.0;
-    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
+    sprintf(fname, "%s/Ionization/xHII_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     if((fid = fopen(fname,"wb"))==NULL) {
       printf("Error opening file:%s\n",fname);
       exit(1);
@@ -456,7 +456,7 @@ int main(int argc, char *argv[]) {
   }
   for(redshift=zmax;redshift>(zmin-dz/10);redshift-=dz) fprintf(fid,"%f\n",redshift); /* first line should be highest redshift */
   fclose(fid);
-  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.1f.dat",argv[1],global_eff,global_N_smooth,global_L/global_hubble);
+  sprintf(fname, "%s/Output_text_files/x_HI_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble);
   if((fid = fopen(fname,"a"))==NULL) {
     printf("Error opening file:%s\n",fname);
     exit(1);

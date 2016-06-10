@@ -103,7 +103,7 @@ int main(int argc,char * argv[]) {
       if (fid==NULL) {printf("Error reading deltanl file... Check path or if the file exists..."); exit (1);}
       fread(delta,sizeof(float),global_N3_smooth,fid);
       fclose(fid);
-      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],z,global_eff,global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/Ionization/xHII_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((filexi = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);

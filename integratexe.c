@@ -86,7 +86,7 @@ int main(int argc,char * argv[]) {
     }else {
       deltatime=fdeltatime(z,z+global_Dzsim);
       //      printf("deltatime : %E seconds\n",deltatime);    
-      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],z,global_eff,global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/Ionization/xHII_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((filexi = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
