@@ -29,7 +29,6 @@ int main(int argc, char **argv){
   float *map_veloc_realx;
   float *map_veloc_realy;
   float *map_veloc_realz;
-  float *halo_map;
   double redshift;
   Halo_t *halo_v;
   size_t elem;
@@ -39,7 +38,7 @@ int main(int argc, char **argv){
  
 
   if(argc != 2) {
-    printf("Nonlinear corrections to halo catalog + generates halo mass box\n");
+    printf("Nonlinear corrections to halo catalog using Zel'dovich approximation.\n");
     printf("usage: adjust_halos base_dir\n");
     printf("base_dir contains simfast21.ini\n");
     exit(1);
@@ -54,13 +53,12 @@ int main(int argc, char **argv){
   printf("Using %d threads\n",global_nthreads);
 #endif
 
-
  
   /**********************************************************************************/
   /*************  Read velocity fields for nonlinear corrections  *************/
 
   printf("Reading Velocity...\n"); fflush(0);   
-  if(!(map_veloc_realx=(float *) malloc(global_N3_halo*sizeof(float)))) {  /* get memory for output values in double */
+  if(!(map_veloc_realx=(float *) malloc(global_N3_halo*sizeof(float)))) {  /* get memory for output values in float */
     printf("Problem...\n");
     exit(1);
   }
@@ -69,7 +67,7 @@ int main(int argc, char **argv){
   if (fid==NULL) {printf("\nError reading X velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realx,sizeof(float),global_N3_halo,fid);
   fclose(fid);
-  if(!(map_veloc_realy=(float *) malloc(global_N3_halo*sizeof(float)))) {  /* get memory for output values in double */
+  if(!(map_veloc_realy=(float *) malloc(global_N3_halo*sizeof(float)))) {  /* get memory for output values in float */
     printf("Problem...\n");
     exit(1);
   }
@@ -78,7 +76,7 @@ int main(int argc, char **argv){
   if (fid==NULL) {printf("\nError reading Y velocity file... Check path or if the file exists..."); exit (1);}
   elem=fread(map_veloc_realy,sizeof(float),global_N3_halo,fid);
   fclose(fid);
-  if(!(map_veloc_realz=(float *) malloc(global_N3_halo*sizeof(float)))) {  /* get memory for output values in double */
+  if(!(map_veloc_realz=(float *) malloc(global_N3_halo*sizeof(float)))) {  /* get memory for output values in float */
     printf("Problem...\n");
     exit(1);
   }
@@ -97,11 +95,7 @@ int main(int argc, char **argv){
     map_veloc_realz[i]*=(global_N_halo/global_L)*global_hubble;
   }
   printf("Velocity Reading done...\n"); fflush(0);   
-  
-  if(!(halo_map=(float *) malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem...\n");
-    exit(1);
-  }
+
   
  /********************************************************************************************************/
  /******************************* Start redshift cycle over boxes ****************************************/
@@ -125,17 +119,16 @@ int main(int argc, char **argv){
       exit(1);
     }
     elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);  
-    fclose(fid);
-    
+    fclose(fid);    
     
     printf("Adjusting halo positions...\n");fflush(0);
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(nhalos,halo_v,map_veloc_realx,map_veloc_realy,map_veloc_realz,global_N_halo) private(i,indice,x,y,z)
 #endif  
     for(i=0;i<nhalos;i++){
-      x= halo_v[i].x;     
-      y= halo_v[i].y;  
-      z= halo_v[i].z;    
+      x= (long int)halo_v[i].x;     
+      y= (long int)halo_v[i].y;  
+      z= (long int)halo_v[i].z;    
       indice=(long int)(x*global_N_halo*global_N_halo+y*global_N_halo+z);
       x += (long int)(map_veloc_realx[indice]*growth);         
       y += (long int)(map_veloc_realy[indice]*growth);         
@@ -143,34 +136,22 @@ int main(int argc, char **argv){
       x=check_borders(x,global_N_halo);
       y=check_borders(y,global_N_halo);
       z=check_borders(z,global_N_halo);
-      halo_v[i].x=x;
-      halo_v[i].y=y;
-      halo_v[i].z=z;   
+      halo_v[i].x=(int)x;
+      halo_v[i].y=(int)y;
+      halo_v[i].z=(int)z;   
     }
-    
-    printf("Generating collapsed halo mass box...\n");fflush(0);
-    get_collapsed_mass_boxb(halo_map,halo_v, nhalos);  /* boxb -  all halo mass inside one cell */
-    
-    if(global_save_nl_halo_cat==1){
-      printf("Writing full non-linear halo catalog\n");fflush(0);
-      sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble)); 
-      if((fid=fopen(fname,"wb"))==NULL){  
-	printf("\nError opening Halonl output catalog\n");
-	return 0;
-      }
-      elem=fwrite(halo_v,sizeof(Halo_t),nhalos,fid); 
-      fclose(fid);
-    }
-    free(halo_v);
-    
-    printf("Writing collapsed mass box...\n");fflush(0);
-    sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
+
+    printf("Writing full non-linear halo catalog\n");fflush(0);
+    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble)); 
     if((fid=fopen(fname,"wb"))==NULL){  
-      printf("\nError opening collapsed mass output box\n");
+      printf("\nError opening Halonl output catalog\n");
       return 0;
     }
-    elem=fwrite(halo_map,sizeof(float),global_N3_smooth,fid);
+    elem=fwrite(&nhalos,sizeof(long int),1,fid);
+    elem=fwrite(halo_v,sizeof(Halo_t),nhalos,fid); 
     fclose(fid);
+    
+    free(halo_v);
     
   } /* ends redshift */
    

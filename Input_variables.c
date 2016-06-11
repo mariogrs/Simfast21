@@ -83,7 +83,8 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"halo_Nbins")==0)global_Nhbins=atoi(third);
 
       /* Ionization */
-      else if(strcmp(first,"Ion_eff")==0)global_eff=atof(third);
+      else if(strcmp(first,"fesc")==0)global_fesc=atof(third);
+      else if(strcmp(first,"Ion_cutoff")==0)global_xHlim=atof(third);
       else if(strcmp(first,"bubble_Rmax")==0)global_bubble_Rmax=atof(third);
       else if(strcmp(first,"bubble_Nbins")==0)global_bubble_Nbins=atoi(third);
 
@@ -132,7 +133,7 @@ void get_Simfast21_params(char *basedir){
   if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.; /* make sure maximum bubble radius is half the box size, e.g. one bubble over the all box... */
   global_flux_Rmax=global_flux_Rmax*global_hubble;  /* Mpc/h */
   global_L3=global_L*global_L*global_L;
-  global_dk=2*PI/global_L;
+  global_dk=2*PI/global_L;  /* h/Mpc */
   global_dx_halo=global_L/global_N_halo;
   global_dx_smooth=global_L/global_N_smooth;
   global_N3_halo=global_N_halo*global_N_halo*global_N_halo;
@@ -252,9 +253,11 @@ void print_parms(void) {
 
 
   /*------------------------Ionization parameters-----------------------------*/
-  printf("global_eff: %f\n",global_eff); //Efficiency parameter for determination of the ionization field
+  printf("global_fesc: %f\n",global_fesc); //escape fraction
+  printf("global_xHlim: %f\n",global_xHlim); //neutral fraction cutoff
   printf("global_bubble_Rmax: %f Mpc/h\n",global_bubble_Rmax);
   printf("global_bubble_Nbins: %d\n",global_bubble_Nbins);
+
 
   /*----------Variables for reading matter power spectrum from file-------- */
   printf("global_pk_flag: %d\n",global_pk_flag); // Matter power spectrum: 0 - Eisenstein & Hu fitting formulae; 1 - Read form file (Output of CMBFast, CAMB)

@@ -25,15 +25,25 @@ M. G. Santos, L. Ferramacho, M. B. Silva, A. Amblard, A. Cooray, MNRAS 2010, htt
 #include "Input_variables.h"
 #include "auxiliary.h"
 
-#define xHlim 0.999 /* cutoff limit for bubble calculation */
 #define FFTWflag FFTW_MEASURE  /* PATIENT is too slow... */
 //#define FFTWflag FFTW_PATIENT  /* PATIENT is too slow... */
+#define CM_PER_MPC 3.0857e24
+#define MASSFRAC 0.76
+
+double Rion(float hmass, double redshift);
+double Rrec(float overdensity, double redshift);
+double G_H(double redshift);
+double XHI(double ratio);
+
+
 
 int main(int argc, char *argv[]) {
   
   char fname[300];
   FILE *fid;
   DIR* dir;
+  long int nhalos;
+  Halo_t *halo_v;
   size_t elem;
   long int ii,ij,ik, ii_c, ij_c, ik_c, a, b, c;   
   long int ncells_1D;
@@ -43,7 +53,7 @@ int main(int argc, char *argv[]) {
   double kk;
   double bfactor; /* value by which to divide bubble size R */
   double neutral,*xHI;
-  float *halo_map, *top_hat_r, *density_map,*bubblef, *bubble;  
+  float *halo_map, *top_hat_r, *density_map,*bubblef, *bubble, *fresid;  
   fftwf_complex *halo_map_c, *top_hat_c, *collapsed_mass_c, *density_map_c, *total_mass_c, *bubble_c;
   fftwf_plan pr2c1,pr2c2,pr2c3,pr2c4,pc2r1,pc2r2,pc2r3;
   double zmin,zmax,dz;
@@ -174,7 +184,10 @@ int main(int argc, char *argv[]) {
     printf("Problem19...\n");
     exit(1);
   }
-
+  if(!(fresid=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
+    printf("Problem20...\n");
+    exit(1);
+  }
 
   
   /****************************************************/
@@ -183,7 +196,7 @@ int main(int argc, char *argv[]) {
   printf("Redshift cycle...\n");fflush(0);
   iz=0;
   neutral=0.;
-  for(redshift=zmin;redshift<(zmax+dz/10) && (neutral < xHlim);redshift+=dz){    
+  for(redshift=zmin;redshift<(zmax+dz/10) && (neutral < global_xHlim);redshift+=dz){    
     printf("z = %f\n",redshift);fflush(0);
 
     sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
@@ -193,33 +206,49 @@ int main(int argc, char *argv[]) {
     fclose(fid);
     
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(global_N3_smooth, density_map,global_rho_m, global_dx_smooth,bubblef) private(i)
+#pragma omp parallel for shared(global_N3_smooth, density_map, fresid, bubblef, halo_map) private(i)
 #endif
     for(i=0;i<(global_N3_smooth);i++){
-      density_map[i]=(1.0+density_map[i])*global_rho_m*global_dx_smooth*global_dx_smooth*global_dx_smooth; /* total mass in 1 cell */
+      fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift); // ratio between hydrogen recombination coffeicent and uniform ionising background (Haardt & Madau (2012)). 
+      fresid[i] = XHI(fresid[i]); // Residual neutral fraction following Popping et al. (2009).
+      density_map[i]= Rrec(1.0+density_map[i], redshift); // Rrec from the CIC smoothed-nonlinear density field. 
       bubblef[i]=0.0;
+      halo_map[i] =0.0;
     }
-    sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
+
+    // NOTE!! this needs to be changed - now the adjust_halos.c writes the nonlinear catalog directly
+    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
-    elem=fread(halo_map,sizeof(float),global_N3_smooth,fid);
+    elem=fread(&nhalos,sizeof(long int),1,fid);
+    printf("Reading %ld halos...\n",nhalos);fflush(0);
+    if(!(halo_v=(Halo_t *) malloc(nhalos*sizeof(Halo_t)))) { 
+      printf("Problem - halo...\n");
+      exit(1);
+    }
+    elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);
     fclose(fid);
+    
+    // CIC smooth Rion//
+    for(i=0;i<nhalos;i++){
+      CIC_smoothing(halo_v[i].x, halo_v[i].y, halo_v[i].z, Rion(halo_v[i].Mass, redshift), halo_map, global_N_halo);
+    }
 
     /* Quick fill of single cells before going to bubble cycle */
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(global_N3_smooth,halo_map,density_map,global_eff,bubblef) private(i,tmp)
+#pragma omp parallel for shared(global_N3_smooth,halo_map,density_map,bubblef) private(i,tmp)
 #endif
     for(i=0;i<global_N3_smooth;i++) {
       if(halo_map[i]>0.) {
 	if(density_map[i]>0.) 
-	  tmp=(double)halo_map[i]*global_eff/density_map[i];
+	  tmp=(double)halo_map[i]/density_map[i];
 	else tmp=1.0;
       }else tmp=0.;
       if(tmp>=1.0) bubblef[i]=1.0; else bubblef[i]=tmp;
     }
     /* FFT density and halos */
-    fftwf_execute(pr2c1);    
-    fftwf_execute(pr2c2);
+    fftwf_execute(pr2c1);    /* FFT density map */
+    fftwf_execute(pr2c2);   /* FFT halo map */
 
     
     /************** going over the bubble sizes ****************/
@@ -248,8 +277,8 @@ int main(int argc, char *argv[]) {
 	}
       }
       
-      fftwf_execute(pc2r1);     
-      fftwf_execute(pc2r2); 
+      fftwf_execute(pc2r1);     /* FFT back filtered density map */
+      fftwf_execute(pc2r2);     /* FFT back filtered halo map */
       
       flag_bub=0;
       
@@ -257,7 +286,7 @@ int main(int argc, char *argv[]) {
 
       /* signal center of bubbles */      
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(halo_map,density_map,bubble,global_N_smooth,global_eff,flag_bub) private(ii,ij,ik,ind)
+#pragma omp parallel for shared(halo_map,density_map, bubble, global_N_smooth,flag_bub) private(ii,ij,ik,ind)
 #endif  
       for(ii=0;ii<global_N_smooth;ii++){
 	for(ij=0;ij<global_N_smooth;ij++){
@@ -265,7 +294,7 @@ int main(int argc, char *argv[]) {
 	    ind=ii*global_N_smooth*global_N_smooth+ij*global_N_smooth+ik;
 	    if(halo_map[ind]>0.) {
 	      if(density_map[ind]>0.) { 
-		if((double)halo_map[ind]/density_map[ind]>=1.0/global_eff) {
+		if((double)halo_map[ind]/density_map[ind]>=1.0) {
 		  flag_bub=1;
 		  bubble[ind]=1.0;  	     	    	    
 		}else bubble[ind]=0;
@@ -294,8 +323,8 @@ int main(int argc, char *argv[]) {
 	  }
 	}
 	/* FFT bubble centers and window */ 
-	fftwf_execute(pr2c3);
-	fftwf_execute(pr2c4);
+	fftwf_execute(pr2c3); /* FFT window */
+	fftwf_execute(pr2c4); /* FFT ionisation (bubble) box */
       
 	/* Make convolution */
 #ifdef _OMPTHREAD_
@@ -304,9 +333,9 @@ int main(int argc, char *argv[]) {
 	for(i=0;i<global_N_smooth*global_N_smooth*(global_N_smooth/2+1);i++) {
 	  bubble_c[i]*=top_hat_c[i];
 	}
-	fftwf_execute(pc2r3);     
+	fftwf_execute(pc2r3);     /* FFT back to real ionisation (bubble) box */
 	
-	/* after dividing by global_N3_smooth, values in bubble are between 0 (neutral)and global_N3_smooth */     
+	/* after dividing by global_N3_smooth, values in bubble are between 0 (neutral)and global_N3_smooth  - this is now the full resolution box! (not the one smoothed over the scale) */     
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(bubble,bubblef,global_N3_smooth) private(i)
 #endif
@@ -344,21 +373,21 @@ int main(int argc, char *argv[]) {
 	  }
 	}
       }
-      fftwf_execute(pc2r1); 
-      fftwf_execute(pc2r2); 
+      fftwf_execute(pc2r1);  /* FFT convolved density field - gives smoothed real density field */
+      fftwf_execute(pc2r2);  /* FFT convolved halo filed - gives smoothed real halo field */
    
       /* fill smaller bubbles in box */
       ncells_1D=(long int)(R/global_dx_smooth);    
       //      printf("Starting to find and fill bubbles...\n");fflush(0);
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(halo_map,density_map,global_eff,global_N_smooth,global_dx_smooth,R,ncells_1D,bubblef,flag_bub) private(ii_c,ij_c,ik_c,ii,ij,ik,a,b,c,ind)
+#pragma omp parallel for shared(halo_map,density_map,global_N_smooth,global_dx_smooth,R,ncells_1D,bubblef,flag_bub) private(ii_c,ij_c,ik_c,ii,ij,ik,a,b,c,ind)
 #endif
       for(ii_c=0;ii_c<global_N_smooth;ii_c++){
 	for(ij_c=0;ij_c<global_N_smooth;ij_c++){
 	  for(ik_c=0;ik_c<global_N_smooth;ik_c++){
 	    ind=ii_c*global_N_smooth*global_N_smooth+ij_c*global_N_smooth+ik_c;
 	    if(halo_map[ind]>0.) {
-	      if(!(density_map[ind]>0.) || ((double)halo_map[ind]/density_map[ind]>=1.0/global_eff)) {
+	      if(!(density_map[ind]>0.) || ((double)halo_map[ind]/density_map[ind]>=1.0)) {
 		flag_bub=1;
 		for(ii=-(ncells_1D+1);ii<=ncells_1D+1;ii++){
 		  a=check_borders(ii_c+ii,global_N_smooth);
@@ -383,6 +412,10 @@ int main(int argc, char *argv[]) {
 
       R/=bfactor;
     } /* ends small bubbles R cycle */
+    
+    for (i=0; i<global_N3_smooth; i++){
+      if(bubblef[i] > 1.0 - fresid[i]) bubblef[i] = 1.0 - fresid[i];
+    }
 
     neutral=0.;
     for (i=0; i<global_N3_smooth; i++){
@@ -391,7 +424,7 @@ int main(int argc, char *argv[]) {
     neutral/=global_N3_smooth;
     printf("neutral fraction=%lf\n",neutral);fflush(0);
     xHI[iz]=neutral;
-    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
+    sprintf(fname, "%s/Ionization/xHII_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     if((fid = fopen(fname,"wb"))==NULL) {
       printf("Error opening file:%s\n",fname);
       exit(1);
@@ -404,9 +437,9 @@ int main(int argc, char *argv[]) {
 
   /* z cycle for neutral>=xHlim */
   while(redshift<(zmax+dz/10)) {
-    printf("z(>%f) = %f\n",xHlim,redshift);fflush(0);
+    printf("z(>%f) = %f\n",global_xHlim,redshift);fflush(0);
     xHI[iz]=1.0;
-    sprintf(fname, "%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],redshift,global_eff,global_N_smooth,global_L/global_hubble); 
+    sprintf(fname, "%s/Ionization/xHII_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     if((fid = fopen(fname,"wb"))==NULL) {
       printf("Error opening file:%s\n",fname);
       exit(1);
@@ -428,7 +461,7 @@ int main(int argc, char *argv[]) {
   }
   for(redshift=zmax;redshift>(zmin-dz/10);redshift-=dz) fprintf(fid,"%f\n",redshift); /* first line should be highest redshift */
   fclose(fid);
-  sprintf(fname, "%s/Output_text_files/x_HI_eff%.2lf_N%ld_L%.1f.dat",argv[1],global_eff,global_N_smooth,global_L/global_hubble);
+  sprintf(fname, "%s/Output_text_files/x_HI_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble);
   if((fid = fopen(fname,"a"))==NULL) {
     printf("Error opening file:%s\n",fname);
     exit(1);

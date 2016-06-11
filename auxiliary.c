@@ -750,9 +750,58 @@ void get_collapsed_mass_boxb(float* halo_box,Halo_t *halo, long int nhalos){
     p=(long int)((halo[il].z)/global_smooth_factor);
     halo_box[i*global_N_smooth*global_N_smooth+j*global_N_smooth+p]+=halo[il].Mass;  /* After Halos are adjusted there could be some overlap... */	
   }
-
 }    
 
+
+/* distributes a "cell mass" that is off center between the surrounding cells... */
+void CIC_smoothing(float x1, float y1, float z1, float map_in, float *map_out, long int N){
+
+  long int i1,j1,p1,x,y,z;
+  x = (long int) x1;
+  y = (long int) y1;
+  z = (long int) z1;
+  x1 -= x;
+  y1 -= y;
+  z1 -= z;
+  for(i1=0;i1<2;i1++){	
+    for(j1=0;j1<2;j1++){
+      for(p1=0;p1<2;p1++){
+        x += i1;
+        y += j1;
+        z += p1;
+  /******************** if the difference between cell positions is negative then go back to previous cell *****/
+        if(x1 < 0.0){
+          x = x - 1;
+          x1 = fabsf(x1);
+        }
+        if(y1 < 0.0){
+          y = y - 1;
+          y1 = fabsf(y1);
+        }
+        if(z1 < 0.0){
+          z = z - 1;
+          z1 = fabsf(z1);
+        }
+        /*********************check periodic boundaries*************************/
+        x=check_borders(x,N);
+        y=check_borders(y,N);
+        z=check_borders(z,N);
+        /****************changing ratios for different directions ***************/
+        if(i1 == 1) x1 = 1.0 - x1;
+        if(j1 == 1) y1 = 1.0 - y1;
+        if(p1 == 1) z1 = 1.0 - z1;
+        map_out[x*N*N+y*N+z] += (1.0 - x1)*(1.0 - y1)*(1.0 - z1)*map_in;
+        /********************* go back to the parent cell original coordinates and ratios ***************************/
+        x -= i1;
+        y -= j1;
+        z -= p1;
+        if(i1 ==1) x1 = 1.0 - x1;
+        if(j1 ==1) y1 = 1.0 - y1;
+        if(p1 ==1) z1 = 1.0 - z1;
+      }
+    } 
+  }
+}
 
 
 

@@ -225,7 +225,7 @@ int main(int argc, char * argv[]) {
 	t21[i]=23.0/1000.*(1.+(double)temp[i])*t21[i]/(1.+1.*dvdr[i])*(0.7/global_hubble)*(global_omega_b*global_hubble*global_hubble/0.02)*sqrt((0.15/global_omega_m/global_hubble/global_hubble)*(1.+z)/10.);  /*Units in Kelvin */
       }
       
-      sprintf(fname,"%s/Ionization/xHII_z%.3f_eff%.2lf_N%ld_L%.1f.dat",argv[1],z,global_eff,global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/Ionization/xHII_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((fid = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);

@@ -65,9 +65,11 @@ int global_Nhbins;
 
 
 /*------------------------Ionization parameters-----------------------------*/
-double global_eff; //Efficiency parameter for determination of the ionization field
 double global_bubble_Rmax;
 int global_bubble_Nbins;
+double global_xHlim;   /* cutoff limit for bubble calculation */
+double global_fesc; /* escape fraction */
+
 
 /*----------Variables for reading matter power spectrum from file-------- */
 

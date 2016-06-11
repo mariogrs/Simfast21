@@ -38,8 +38,8 @@ adjust_halos: $(aux) adjust_halos.o
 get_nldensity: $(aux) get_nldensity.o
 	$(cc) -o get_nldensity.x get_nldensity.o $(aux) $(flags)
 
-get_HIIbubbles: $(aux) get_HIIbubbles.o
-	$(cc) -o get_HIIbubbles.x get_HIIbubbles.o $(aux) $(flags)
+get_HIIbubbles: $(aux) get_HIIbubbles.o user_functions.o
+	$(cc) -o get_HIIbubbles.x get_HIIbubbles.o user_functions.o $(aux) $(flags)
 
 get_SFR: $(aux) get_SFR.o
 	$(cc) -o get_SFR.x get_SFR.o $(aux) $(flags)
@@ -61,6 +61,10 @@ integrateTempX: $(aux) integrateTempX.o
 
 t21: $(aux) t21.o
 	$(cc) -o t21.x t21.o $(aux) $(flags)
+
+power3d: tools/power3d.o
+	$(cc) -o tools/power3d.x tools/power3d.o $(flags)
+
 
 #tools
 get_halo_deltan: $(aux) tools/get_halo_deltan.o

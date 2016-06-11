@@ -20,12 +20,13 @@ Output: delta(z) with nonlinear corrections
 int main(int argc, char **argv){
  
   FILE *fid;
-  long int ind;
+  long int ind,i1,j1,p1;
   long int i,j,p,x,y,z;
   size_t elem;
   double redshift;
   double growth;
   double growth_in;
+  float x1,y1,z1;
   float *map_veloc_realx;
   float *map_veloc_realy;
   float *map_veloc_realz;
@@ -143,7 +144,7 @@ int main(int argc, char **argv){
       for(ind=0;ind<global_N3_halo;ind++) {
 	map_out[ind]=-1.0;    
       }
-      
+      /***************************** CIC smoothing ******************************************************/
     //#ifdef _OMPTHREAD_
     //#pragma omp parallel for shared(map_out,map_in,growth,global_N_halo) private(i,j,p,ind,x,y,z)
     //#endif 
@@ -152,17 +153,14 @@ int main(int argc, char **argv){
 	for(j=0;j<global_N_halo;j++){
 	  for(p=0;p<global_N_halo;p++){
 	    ind=i*global_N_halo*global_N_halo+j*global_N_halo+p;
-	    x=(long int)(i + map_veloc_realx[ind]*growth);
-	    y=(long int)(j + map_veloc_realy[ind]*growth);
-	    z=(long int)(p + map_veloc_realz[ind]*growth);   
-	    x=check_borders(x,global_N_halo);
-	    y=check_borders(y,global_N_halo);
-	    z=check_borders(z,global_N_halo);
-	    //#pragma omp critical
-	    map_out[x*global_N_halo*global_N_halo+y*global_N_halo+z]+=map_in[ind];    
+	    x1=i + map_veloc_realx[ind]*growth;
+            y1=j + map_veloc_realy[ind]*growth;
+            z1=p + map_veloc_realz[ind]*growth;
+	    CIC_smoothing(x1, y1, z1, map_in[ind], map_out, global_N_halo);
 	  }
 	}
       }
+
       printf("Smoothing...\n");fflush(0);   
       smooth_boxb(map_out, map_out2, global_N_halo, global_N_smooth);
       printf("Writing...\n");fflush(0);   
