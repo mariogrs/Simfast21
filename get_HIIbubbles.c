@@ -29,6 +29,10 @@ M. G. Santos, L. Ferramacho, M. B. Silva, A. Amblard, A. Cooray, MNRAS 2010, htt
 //#define FFTWflag FFTW_PATIENT  /* PATIENT is too slow... */
 #define CM_PER_MPC 3.0857e24
 #define MASSFRAC 0.76
+double Rion(float hmass, double redshift);
+double Rrec(float overdensity, double redshift);
+double G_H(double redshift);
+double XHI(double ratio);
 
 
 
@@ -204,9 +208,9 @@ int main(int argc, char *argv[]) {
 #pragma omp parallel for shared(global_N3_smooth, density_map, fresid, bubblef, halo_map) private(i)
 #endif
     for(i=0;i<(global_N3_smooth);i++){
-      fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift); // need comment!!
-      fresid[i] = XHI(fresid[i]); // need comment!!
-      density_map[i]= Rrec(1.0+density_map[i], redshift); // need comment!!
+      fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift); // ratio between hydrogen recombination coffeicent and uniform ionising background (Haardt & Madau (2012)). 
+      fresid[i] = XHI(fresid[i]); // Residual neutral fraction following Popping et al. (2009).
+      density_map[i]= Rrec(1.0+density_map[i], redshift); // Rrec from the CIC smoothed-nonlinear density field. 
       bubblef[i]=0.0;
       halo_map[i] =0.0;
     }
