@@ -216,7 +216,6 @@ int main(int argc, char *argv[]) {
       halo_map[i] =0.0;
     }
 
-    // NOTE!! this needs to be changed - now the adjust_halos.c writes the nonlinear catalog directly
     sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
