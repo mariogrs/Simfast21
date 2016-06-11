@@ -29,6 +29,7 @@ M. G. Santos, L. Ferramacho, M. B. Silva, A. Amblard, A. Cooray, MNRAS 2010, htt
 //#define FFTWflag FFTW_PATIENT  /* PATIENT is too slow... */
 #define CM_PER_MPC 3.0857e24
 #define MASSFRAC 0.76
+
 double Rion(float hmass, double redshift);
 double Rrec(float overdensity, double redshift);
 double G_H(double redshift);
