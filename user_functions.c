@@ -57,7 +57,7 @@ double Rrec(float overdensity, double redshift){
 
 
 
-/********** Popping formula ****************/
+/********** ratio between recombination rate coefficient (at T=10^4K) and interpolation function of Haardt & Madau (2012) uniform ionising background  ****************/
 
 double G_H(double redshift){
   double gh_tmp1 =   1.86956756e-17*pow(redshift,5.)  - 9.05797228e-16*pow(redshift,4.) +  1.56916163e-14*pow(redshift,3.);
@@ -65,8 +65,7 @@ double G_H(double redshift){
   double b_h =  4.19232273531e-13/(gh_tmp1 + gh_tmp2);
   return b_h;
 }
-
-
+/**************************** Popping et al. (2009) formula to compute the residual neutral fraction from ionising background ********/
 double XHI(double ratio){
   double XHI_tmp1 = 2.*ratio + 1. - sqrt((2.*ratio + 1.)*(2.*ratio + 1.) - 4.*ratio*ratio  );
   double XHI_tmp3 = XHI_tmp1/(2.*ratio);
