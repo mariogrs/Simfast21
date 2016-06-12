@@ -45,17 +45,16 @@ int main(int argc, char *argv[]) {
   long int nhalos;
   Halo_t *halo_v;
   size_t elem;
-  long int ii,ij,ik, ii_c, ij_c, ik_c, a, b, c;   
-  long int ncells_1D;
+  long int ii,ij,ik;   
   long int i,j,p,indi,indj,ind;
   int flag_bub,iz;
   double redshift,tmp;
   double kk;
   double bfactor; /* value by which to divide bubble size R */
   double neutral,*xHI;
-  float *halo_map, *top_hat_r, *density_map,*bubblef, *bubble, *fresid;  
-  fftwf_complex *halo_map_c, *top_hat_c, *collapsed_mass_c, *density_map_c, *total_mass_c, *bubble_c;
-  fftwf_plan pr2c1,pr2c2,pr2c3,pr2c4,pc2r1,pc2r2,pc2r3;
+  float *halo_map, *density_map,*bubblef, *fresid;  
+  fftwf_complex *halo_map_c, *collapsed_mass_c, *density_map_c, *total_mass_c;
+  fftwf_plan pr2c1,pr2c2,pc2r1,pc2r2;
   double zmin,zmax,dz;
   double R;
   
@@ -65,7 +64,7 @@ int main(int argc, char *argv[]) {
     printf("usage: get_HIIbubbles base_dir\n");
     printf("base_dir contains simfast21.ini and directory structure\n");
     exit(1);
-  }  
+  }
   get_Simfast21_params(argv[1]);
   zmin=global_Zminsim;
   zmax=global_Zmaxsim;
@@ -146,40 +145,10 @@ int main(int argc, char *argv[]) {
     printf("Problem10...\n");
     exit(1);
   }  
-  /* top hat window */
-  if(!(top_hat_r=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem11...\n");
-    exit(1);
-  }
-  if(!(top_hat_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem12...\n");
-    exit(1);
-  }
-  if(!(pr2c3=fftwf_plan_dft_r2c_3d(global_N_smooth, global_N_smooth, global_N_smooth, top_hat_r, top_hat_c, FFTWflag))) { 
-    printf("Problem13...\n");
-    exit(1);
-  } 
-  /* bubble boxes */
-  if(!(bubble=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem14...\n");
-    exit(1);
-  }
-  if(!(bubble_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem15...\n");
-    exit(1);
-  }
   if(!(bubblef=(float *) malloc(global_N3_smooth*sizeof(float)))) {
     printf("Problem16...\n");
     exit(1);
   }
-  if(!(pr2c4=fftwf_plan_dft_r2c_3d(global_N_smooth, global_N_smooth, global_N_smooth, bubble, bubble_c, FFTWflag))) { 
-    printf("Problem17...\n");
-    exit(1);
-  } 
-  if(!(pc2r3=fftwf_plan_dft_c2r_3d(global_N_smooth, global_N_smooth, global_N_smooth, bubble_c, bubble, FFTWflag))) { 
-    printf("Problem18...\n");
-    exit(1);
-  }  
   if(!(xHI=(double *) malloc((int)((zmax-zmin)/dz+2)*sizeof(double)))) {
     printf("Problem19...\n");
     exit(1);
@@ -206,17 +175,16 @@ int main(int argc, char *argv[]) {
     fclose(fid);
     
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(global_N3_smooth, density_map, fresid, bubblef, halo_map) private(i)
+#pragma omp parallel for shared(global_N3_smooth, density_map, fresid, bubblef, halo_map, redshift) private(i)
 #endif
     for(i=0;i<(global_N3_smooth);i++){
-      fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift); // ratio between hydrogen recombination coffeicent and uniform ionising background (Haardt & Madau (2012)). 
+      fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift); // ratio between hydrogen recombination coefficient and uniform ionising background (Haardt & Madau (2012)). 
       fresid[i] = XHI(fresid[i]); // Residual neutral fraction following Popping et al. (2009).
       density_map[i]= Rrec(1.0+density_map[i], redshift); // Rrec from the CIC smoothed-nonlinear density field. 
       bubblef[i]=0.0;
       halo_map[i] =0.0;
     }
 
-    // NOTE!! this needs to be changed - now the adjust_halos.c writes the nonlinear catalog directly
     sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
@@ -253,7 +221,7 @@ int main(int argc, char *argv[]) {
     
     /************** going over the bubble sizes ****************/
     R=global_bubble_Rmax;    /* Maximum bubble size...*/
-    while(R>=2*global_dx_smooth){ 
+    while(R>=global_dx_smooth){ 
     
       printf("bubble radius R= %lf\n", R);fflush(0);    
       //      printf("Filtering halo and density boxes...\n");fflush(0);
@@ -284,9 +252,9 @@ int main(int argc, char *argv[]) {
       
       //      printf("Starting to find and fill bubbles...\n");fflush(0);
 
-      /* signal center of bubbles */      
+      /* set ionisation only at center of bubble */      
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(halo_map,density_map, bubble, global_N_smooth,flag_bub) private(ii,ij,ik,ind)
+#pragma omp parallel for shared(halo_map,density_map, bubblef, global_N_smooth,flag_bub) private(ii,ij,ik,ind)
 #endif  
       for(ii=0;ii<global_N_smooth;ii++){
 	for(ij=0;ij<global_N_smooth;ij++){
@@ -294,125 +262,27 @@ int main(int argc, char *argv[]) {
 	    ind=ii*global_N_smooth*global_N_smooth+ij*global_N_smooth+ik;
 	    if(halo_map[ind]>0.) {
 	      if(density_map[ind]>0.) { 
-		if((double)halo_map[ind]/density_map[ind]>=1.0) {
+		if((double)halo_map[ind]/density_map[ind]>=1.0) {  /* check if ionisation rate is larger than recombination rate */
 		  flag_bub=1;
-		  bubble[ind]=1.0;  	     	    	    
-		}else bubble[ind]=0;
+		  bubblef[ind]=1.0;  	     	    	    
+		}
 	      }else {
 		flag_bub=1;
-		bubble[ind]=1.0;  	     	    	    
+		bubblef[ind]=1.0;  	     	    	    
 	      }
-	    }else bubble[ind]=0;
+	    }
 	  }
 	}
       }
     
-      /* generate spherical window in real space for a given R */
-      if(flag_bub>0){
-	printf("Found bubble...\n");fflush(0);
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(top_hat_r,R,global_dx_smooth,global_N_smooth) private(i,j,p)
-#endif  
-	for(i=0;i<global_N_smooth;i++){
-	  for(j=0;j<global_N_smooth;j++){
-	    for(p=0;p<global_N_smooth;p++){ 
-	      if(sqrt(i*i+j*j+p*p)*global_dx_smooth<=R || sqrt(i*i+(j-global_N_smooth)*(j-global_N_smooth)+p*p)*global_dx_smooth<=R  || sqrt(i*i+(j-global_N_smooth)*(j-global_N_smooth)+(p-global_N_smooth)*(p-global_N_smooth))*global_dx_smooth <=R || sqrt(i*i+(p-global_N_smooth)*(p-global_N_smooth)+j*j)*global_dx_smooth<=R || sqrt((i-global_N_smooth)*(i-global_N_smooth)+j*j+p*p)*global_dx_smooth<=R ||  sqrt((i-global_N_smooth)*(i-global_N_smooth)+(j-global_N_smooth)*(j-global_N_smooth)+p*p)*global_dx_smooth<=R ||  sqrt((i-global_N_smooth)*(i-global_N_smooth)+(j-global_N_smooth)*(j-global_N_smooth)+(p-global_N_smooth)*(p-global_N_smooth))*global_dx_smooth<=R ||  sqrt((i-global_N_smooth)*(i-global_N_smooth)+j*j+(p-global_N_smooth)*(p-global_N_smooth))*global_dx_smooth<=R ) {
-		top_hat_r[i*global_N_smooth*global_N_smooth+j*global_N_smooth+p]=1.0;
-	      }else top_hat_r[i*global_N_smooth*global_N_smooth+j*global_N_smooth+p]=0.0;	  
-	    }
-	  }
-	}
-	/* FFT bubble centers and window */ 
-	fftwf_execute(pr2c3); /* FFT window */
-	fftwf_execute(pr2c4); /* FFT ionisation (bubble) box */
+      if(flag_bub>0) printf("Found bubble...\n");fflush(0);
       
-	/* Make convolution */
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(bubble_c,top_hat_c,global_N_smooth) private(i)
-#endif
-	for(i=0;i<global_N_smooth*global_N_smooth*(global_N_smooth/2+1);i++) {
-	  bubble_c[i]*=top_hat_c[i];
-	}
-	fftwf_execute(pc2r3);     /* FFT back to real ionisation (bubble) box */
-	
-	/* after dividing by global_N3_smooth, values in bubble are between 0 (neutral)and global_N3_smooth  - this is now the full resolution box! (not the one smoothed over the scale) */     
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(bubble,bubblef,global_N3_smooth) private(i)
-#endif
-	for (i=0; i<global_N3_smooth; i++){
-	  bubble[i]/=global_N3_smooth;
-	  if (bubble[i]>0.2) bubblef[i]=1.0; /* neutral should be zero */
-	} 
-	
-      } /* ends filling out bubbles in box for R */
-    
       R/=bfactor;  
     } /* ends R cycle */
- 
-    /* just to check smallest bubbles through older method */
-    printf("Going to smaller R cycle...\n"); fflush(0);
-    while(R>=global_dx_smooth){
-  
-      printf("bubble radius R= %lf\n", R);fflush(0); 
-      flag_bub=0;
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(collapsed_mass_c,halo_map_c,total_mass_c,density_map_c,global_N_smooth,global_dx_smooth,global_dk,R) private(i,j,p,indi,indj,kk)
-#endif
-      for(i=0;i<global_N_smooth;i++) {
-	if(i>global_N_smooth/2) {
-	  indi=-(global_N_smooth-i);
-	}else indi=i;      
-	for(j=0;j<global_N_smooth;j++) {
-	  if(j>global_N_smooth/2) {
-	    indj=-(global_N_smooth-j);
-	  }else indj=j;
-	  for(p=0;p<=global_N_smooth/2;p++) {
-	    kk=global_dk*sqrt(indi*indi+indj*indj+p*p);
-	    total_mass_c[i*global_N_smooth*(global_N_smooth/2+1)+j*(global_N_smooth/2+1)+p]=density_map_c[i*global_N_smooth*(global_N_smooth/2+1)+j*(global_N_smooth/2+1)+p]*W_filter(kk*R);
-	    collapsed_mass_c[i*global_N_smooth*(global_N_smooth/2+1)+j*(global_N_smooth/2+1)+p]=halo_map_c[i*global_N_smooth*(global_N_smooth/2+1)+j*(global_N_smooth/2+1)+p]*W_filter(kk*R);
-	  }
-	}
-      }
-      fftwf_execute(pc2r1);  /* FFT convolved density field - gives smoothed real density field */
-      fftwf_execute(pc2r2);  /* FFT convolved halo filed - gives smoothed real halo field */
-   
-      /* fill smaller bubbles in box */
-      ncells_1D=(long int)(R/global_dx_smooth);    
-      //      printf("Starting to find and fill bubbles...\n");fflush(0);
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(halo_map,density_map,global_N_smooth,global_dx_smooth,R,ncells_1D,bubblef,flag_bub) private(ii_c,ij_c,ik_c,ii,ij,ik,a,b,c,ind)
-#endif
-      for(ii_c=0;ii_c<global_N_smooth;ii_c++){
-	for(ij_c=0;ij_c<global_N_smooth;ij_c++){
-	  for(ik_c=0;ik_c<global_N_smooth;ik_c++){
-	    ind=ii_c*global_N_smooth*global_N_smooth+ij_c*global_N_smooth+ik_c;
-	    if(halo_map[ind]>0.) {
-	      if(!(density_map[ind]>0.) || ((double)halo_map[ind]/density_map[ind]>=1.0)) {
-		flag_bub=1;
-		for(ii=-(ncells_1D+1);ii<=ncells_1D+1;ii++){
-		  a=check_borders(ii_c+ii,global_N_smooth);
-		  for(ij=-(ncells_1D+1);ij<=ncells_1D+1;ij++){
-		    if(sqrt(ii*ii+ij*ij)*global_dx_smooth <= R){
-		      b=check_borders(ij_c+ij,global_N_smooth);
-		      for(ik=-(ncells_1D+1);ik<=ncells_1D+1;ik++){
-			c=check_borders(ik_c+ik,global_N_smooth);
-			if(sqrt(ii*ii+ij*ij+ik*ik)*global_dx_smooth <= R){
-			  bubblef[a*global_N_smooth*global_N_smooth+b*global_N_smooth+c]=1.0;  	     
-			}
-		      }
-		    }
-		  }
-		}
-	      }
-	    }
-	  }
-	}
-      }
-      if(flag_bub>0){printf("Found bubble...\n");fflush(0);}
 
-      R/=bfactor;
-    } /* ends small bubbles R cycle */
-    
+#ifdef _OMPTHREAD_
+#pragma omp parallel for shared(global_N3_smooth, bubblef, fresid) private(i)
+#endif   
     for (i=0; i<global_N3_smooth; i++){
       if(bubblef[i] > 1.0 - fresid[i]) bubblef[i] = 1.0 - fresid[i];
     }
@@ -471,17 +341,12 @@ int main(int argc, char *argv[]) {
   
   free(xHI);
   free(bubblef);
-  fftwf_free(top_hat_r);
-  fftwf_free(top_hat_c);
   fftwf_free(collapsed_mass_c);
   fftwf_free(density_map);
   fftwf_free(density_map_c);
   fftwf_free(halo_map);
   fftwf_free(halo_map_c);
   fftwf_free(total_mass_c);
-  fftwf_free(bubble);
-  fftwf_free(bubble_c);
-
 
   exit(0);
 }

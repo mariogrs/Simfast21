@@ -1,6 +1,6 @@
 
 echo
-echo SimFast21 v1.5
+echo SimFast21
 echo Generating the simulation in directory: $1
 
 echo
@@ -16,14 +16,11 @@ echo
 echo ------------------------------------------ Nonlinear density field ------------------------------------------
 ./get_nldensity.x $1  
 echo
-echo ------------------------------------------ Adjusted halo box ------------------------------------------
+echo ------------------------------------------ Adjusted halo field ------------------------------------------
 ./adjust_halos.x $1 
 echo
 echo ------------------------------------------ Ionization fraction ------------------------------------------
 ./get_HIIbubbles.x $1
-echo
-echo ------------------------------------------ Star Formation Rate ------------------------------------------
-./get_SFR.x $1         
 echo
 echo ------------------------------------------ Epsilon over n ------------------------------------------
 ./epsilonXon.x $1      
