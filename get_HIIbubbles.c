@@ -206,17 +206,16 @@ int main(int argc, char *argv[]) {
     fclose(fid);
     
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(global_N3_smooth, density_map, fresid, bubblef, halo_map) private(i)
+#pragma omp parallel for shared(global_N3_smooth, density_map, fresid, bubblef, halo_map, redshift) private(i)
 #endif
     for(i=0;i<(global_N3_smooth);i++){
-      fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift); // ratio between hydrogen recombination coffeicent and uniform ionising background (Haardt & Madau (2012)). 
+      fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift); // ratio between hydrogen recombination coefficient and uniform ionising background (Haardt & Madau (2012)). 
       fresid[i] = XHI(fresid[i]); // Residual neutral fraction following Popping et al. (2009).
       density_map[i]= Rrec(1.0+density_map[i], redshift); // Rrec from the CIC smoothed-nonlinear density field. 
       bubblef[i]=0.0;
       halo_map[i] =0.0;
     }
 
-    // NOTE!! this needs to be changed - now the adjust_halos.c writes the nonlinear catalog directly
     sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
@@ -412,7 +411,10 @@ int main(int argc, char *argv[]) {
 
       R/=bfactor;
     } /* ends small bubbles R cycle */
-    
+
+#ifdef _OMPTHREAD_
+#pragma omp parallel for shared(global_N3_smooth, bubblef, fresid) private(i)
+#endif   
     for (i=0; i<global_N3_smooth; i++){
       if(bubblef[i] > 1.0 - fresid[i]) bubblef[i] = 1.0 - fresid[i];
     }
