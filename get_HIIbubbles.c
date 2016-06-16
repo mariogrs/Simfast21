@@ -136,40 +136,13 @@ int main(int argc, char *argv[]) {
     printf("Problem10...\n");
     exit(1);
   }  
-  /* top hat window */
-  if(!(top_hat_r=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem11...\n");
-    exit(1);
-  }
-  if(!(top_hat_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem12...\n");
-    exit(1);
-  }
-  if(!(pr2c3=fftwf_plan_dft_r2c_3d(global_N_smooth, global_N_smooth, global_N_smooth, top_hat_r, top_hat_c, FFTWflag))) { 
-    printf("Problem13...\n");
-    exit(1);
-  } 
-  /* bubble boxes */
-  if(!(bubble=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem14...\n");
-    exit(1);
-  }
-  if(!(bubble_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem15...\n");
-    exit(1);
-  }
+
+  /* bubble box */
   if(!(bubblef=(float *) malloc(global_N3_smooth*sizeof(float)))) {
     printf("Problem16...\n");
     exit(1);
   }
-  if(!(pr2c4=fftwf_plan_dft_r2c_3d(global_N_smooth, global_N_smooth, global_N_smooth, bubble, bubble_c, FFTWflag))) { 
-    printf("Problem17...\n");
-    exit(1);
-  } 
-  if(!(pc2r3=fftwf_plan_dft_c2r_3d(global_N_smooth, global_N_smooth, global_N_smooth, bubble_c, bubble, FFTWflag))) { 
-    printf("Problem18...\n");
-    exit(1);
-  }  
+
   if(!(xHI=(double *) malloc((int)((zmax-zmin)/dz+2)*sizeof(double)))) {
     printf("Problem19...\n");
     exit(1);
@@ -277,7 +250,10 @@ int main(int argc, char *argv[]) {
 	  }
 	}
       }
-    	    
+
+      if(flag_bub>0)
+	printf("Found bubble...\n");fflush(0);
+
       R/=bfactor;  
   } /* ends R cycle */
  
