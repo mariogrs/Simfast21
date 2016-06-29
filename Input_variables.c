@@ -89,6 +89,10 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"bubble_Nbins")==0)global_bubble_Nbins=atoi(third);
 
       /* xray + Lya */
+      else if(strcmp(first,"use_SFR")==0){
+      	if(strcmp(third,"T")==0) global_use_SFR=1;    
+	if(strcmp(third,"F")==0) global_use_SFR=0;
+      }
       else if(strcmp(first,"use_Lya_xrays")==0){
       	if(strcmp(third,"T")==0) global_use_Lya_xrays=1;    
 	if(strcmp(third,"F")==0) global_use_Lya_xrays=0;
@@ -269,6 +273,7 @@ void print_parms(void) {
   printf("global_save_nl_halo_cat: %d\n",global_save_nl_halo_cat);
   printf("global_save_original_deltanl: %d\n",global_save_original_deltanl);
   printf("global_use_Lya_xrays: %d\n",global_use_Lya_xrays);
+  printf("global_use_SFR: %d\n",global_use_SFR);
 
 
   /*--------- Parameters for X-ray heating and Lya coupling----------*/

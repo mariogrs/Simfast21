@@ -17,10 +17,13 @@ double Rion(float hmass, double redshift);
 double Rrec(float overdensity, double redshift);
 double G_H(double redshift);
 double XHI(double ratio);
+double sfr(float hmass, double z);
+double Qion(double z);
 
 #define CM_PER_MPC 3.0857e24
 
 
+/* units of s^-1 */
 /***************   Rion *************/
 #define c1      7.25511524e+39
 #define c2      9.367608e+07
@@ -54,6 +57,28 @@ double Rrec(float overdensity, double redshift){
   return rec55;
 }
 
+
+/********* SFR ****************/
+/* units: M/yr */
+
+double sfr(float hmass, double z) {
+
+  return (Rion(hmass,z)/Qion(z));
+
+}
+
+
+/********* Qion ****************/
+/* units: yr*s^-1*M^-1 */
+
+#define a 2.05707274e-02
+#define b 5.29944413e+01
+
+double Qion(double z) {
+
+  return pow(10.0, a*z + b - 45.0);
+
+}
 
 
 /********** ratio between recombination rate coefficient (at T=10^4K) and interpolation function of Haardt & Madau (2012) uniform ionising background  ****************/

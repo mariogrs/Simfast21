@@ -84,6 +84,7 @@ int global_use_sgrid;
 int global_save_nl_halo_cat;
 int global_save_original_deltanl;
 int global_use_Lya_xrays;
+int global_use_SFR;
 
 
 /*--------- Parameters for X-ray heating and Lya coupling----------*/

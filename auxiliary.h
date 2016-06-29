@@ -13,7 +13,7 @@ SimFast21
 typedef struct Halo_t_
 {
   float Mass;
-  int x,y,z;
+  float x,y,z;
 } Halo_t;
 
 
@@ -58,6 +58,7 @@ double Hz(double z);
 
 
 float *smooth_boxb(float *box, float *box_smoothed, long int N, long int Ns);
+float *smooth_sum(float *box, float *box_smoothed, long int N, long int Ns);
 void box_symmetriesd(double complex *box, long int N);
 void box_symmetriesf(float complex *box, long int N);
 void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos);

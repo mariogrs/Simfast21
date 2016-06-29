@@ -1,7 +1,7 @@
 
 /*********************************************************************************************************
 SimFast21
-Description: Calculates SFR from the collapsed mass field
+Description: Calculates SFR from the non-linear halo field using a fitting function calibrated to simulations
 *********************************************************************************************************/
 
 /* --------------Includes ----------------------------------------- */
@@ -19,22 +19,26 @@ Description: Calculates SFR from the collapsed mass field
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
      
-
 #include "Input_variables.h"
 #include "auxiliary.h"
 
+double sfr(float hmass, double z);
 
 
 int main(int argc, char **argv){
 
   
-  FILE *fid;
+  FILE *fid, *fid_sa;
   DIR* dir;
   char fname[300];
-  long int i,j,nz,elem;
-  double aver[1000],fcollv[1000],sfrv[1000],zv[1000];
-  float *halo_mass;
+  long int i,j,nz;
+  double sfrd_aver;
+  float *sfr_box1, *sfr_box2;
   double zmin,zmax,dz,redshift;
+  long int nhalos;
+  Halo_t *halo_v;
+  size_t elem;
+
   
   if(argc !=2) {
     printf("Generates SFRD using nonlinear halo boxes\n");
@@ -43,8 +47,10 @@ int main(int argc, char **argv){
     exit(1);
   }  
   get_Simfast21_params(argv[1]);
-  if(global_use_Lya_xrays==0) {printf("Lya and xray use set to false - no need to calculate SFR\n");exit(0);}
-  zmin=global_Zminsfr;
+  if((global_use_Lya_xrays==0) && (global_use_SFR==0)) {printf("Lya and xray use set to false - no need to calculate SFR\n");exit(0);}
+  if(global_use_SFR==1) { /* use SFR all the way... */
+    zmin=global_Zminsim;
+  } else zmin=global_Zminsfr;
   zmax=global_Zmaxsim;
   dz=global_Dzsim;
   
@@ -63,36 +69,14 @@ int main(int argc, char **argv){
       exit(1);
     }
   }  
-
-  if(!(halo_mass=(float *) malloc(global_N3_smooth*sizeof(float)))) {
+  if(!(sfr_box1=(float *) malloc(global_N3_halo*sizeof(float)))) {
     printf("Problem...\n");
     exit(1);
   }
-
-  nz=0;
-  printf("Calculating halo mass average...\n");
-  /* redshift cycle */
-  for(redshift=zmin;redshift<(zmax+dz/10);redshift+=dz){
-    zv[nz]=redshift;
-    sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
-    if((fid=fopen(fname,"rb"))==NULL){  
-      printf("\nError opening %s\n",fname);
-      exit(1);
-    }
-    elem=fread(halo_mass,sizeof(float),global_N3_smooth,fid);
-    fclose(fid);
-    aver[nz]=0.;
-    for(i=0;i<global_N3_smooth;i++) aver[nz]+=halo_mass[i];
-    fcollv[nz]=aver[nz]/(global_rho_m*global_L3);  /* Msun/(Mpc/h)^3 */
-    aver[nz]/=global_N3_smooth;
-    nz++;
-  }  /* close redshift cycle */  
-
-  printf("Interpolation for SFRD...\n");
-  gsl_interp_accel *acc = gsl_interp_accel_alloc ();
-  gsl_spline *spline = gsl_spline_alloc (gsl_interp_cspline, nz);
-  gsl_spline_init (spline, zv, fcollv, nz);
-
+  if(!(sfr_box2=(float *) malloc(global_N3_smooth*sizeof(float)))) {
+    printf("Problem...\n");
+    exit(1);
+  }
 
   sprintf(fname,"%s/Output_text_files",argv[1]);
   if((dir=opendir(fname))==NULL) {
@@ -103,41 +87,62 @@ int main(int argc, char **argv){
     }
   }
   sprintf(fname,"%s/Output_text_files/sfrd_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble); 
-  if((fid=fopen(fname,"a"))==NULL){
+  if((fid_sa=fopen(fname,"a"))==NULL){
     printf("\nError opening output %s file...\n",fname); 
     exit(1);
   }  
-  for(i=nz-1;i>=0;i--) {
-    sfrv[i]=gsl_spline_eval_deriv(spline, zv[i], acc)*dzdt(zv[i])/3.171E-8*global_rho_b*global_fstar; /* SFRD in Msun/(Mpc/h)^3/year */
-    if(sfrv[i]<0.) sfrv[i]=0.;
-    fprintf(fid,"%f %.8E\n",zv[i],sfrv[i]);
-  }  
-  fclose(fid);
-  gsl_spline_free (spline);
-  gsl_interp_accel_free (acc);
 
-  printf("Writing SFRD files...\n");
+  
   /* redshift cycle */
-  for(i=0;i<nz;i++) {
-    sprintf(fname, "%s/Halos/masscoll_z%.3f_N%ld_L%.1f.dat",argv[1],zv[i],global_N_smooth,global_L/global_hubble); 
-    if((fid=fopen(fname,"rb"))==NULL){  
-      printf("\nError opening %s\n",fname);
+  for(redshift=zmin;redshift<(zmax+dz/10);redshift+=dz){
+    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
+    fid=fopen(fname,"rb");
+    if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
+    elem=fread(&nhalos,sizeof(long int),1,fid);
+    printf("Reading %ld halos...\n",nhalos);fflush(0);
+    if(!(halo_v=(Halo_t *) malloc(nhalos*sizeof(Halo_t)))) { 
+      printf("Problem - halo...\n");
       exit(1);
     }
-    elem=fread(halo_mass,sizeof(float),global_N3_smooth,fid);
+    elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);
     fclose(fid);
-    
-    if(aver[i]>0.)
-      for(j=0;j<global_N3_smooth;j++) halo_mass[j]*=sfrv[i]/aver[i];
-    else for(j=0;j<global_N3_smooth;j++) halo_mass[j]=0.;
-    sprintf(fname, "%s/SFR/sfrd_z%.3f_N%ld_L%.1f.dat",argv[1],zv[i],global_N_smooth,global_L/global_hubble); 
-    if((fid=fopen(fname,"wb"))==NULL){
-      printf("\nError opening output sfrd file... Chech if path is correct...\n"); 
+#ifdef _OMPTHREAD_
+#pragma omp parallel for shared(global_N3_halo, sfr_box1) private(i)
+#endif
+    for(i=0;i<(global_N3_halo);i++){
+      sfr_box1[i] =0.0;
+    }     
+    // CIC smooth Rion//
+    for(i=0;i<nhalos;i++){
+      CIC_smoothing(halo_v[i].x, halo_v[i].y, halo_v[i].z, sfr(halo_v[i].Mass, redshift), sfr_box1, global_N_halo); /* SFR in Msun/yr */
     }
-    elem=fwrite(halo_mass,sizeof(float),global_N3_smooth,fid);
+    free(halo_v);
+    smooth_sum(sfr_box1, sfr_box2, global_N_halo, global_N_smooth); /* add SFR over smoothed cells */
+    /* convert to SFRD in units of Msun/(Mpc/h)^3/year */
+#ifdef _OMPTHREAD_
+#pragma omp parallel for shared(global_N3_smooth, sfr_box2) private(i)
+#endif
+    for(i=0;i<(global_N3_smooth);i++){
+      sfr_box2[i] = sfr_box2[i]/global_dx_smooth/global_dx_smooth/global_dx_smooth;
+    }     
+    printf("Writing SFRD file...\n");
+    sprintf(fname, "%s/SFR/sfrd_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble);
+    fid=fopen(fname,"rb");
+    if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
+    elem=fwrite(sfr_box2,sizeof(float),global_N3_smooth,fid);
     fclose(fid); 
-  }
 
+  /* average */
+  sfrd_aver=0.0;
+  for(i=0;i<(global_N3_smooth);i++){
+    sfrd_aver+=sfr_box2[i];
+  }
+  sfrd_aver=sfrd_aver/global_N3_smooth;
+  fprintf(fid_sa,"%f %.8E\n",redshift,sfrd_aver); /* prints average SFRD */
+
+  }  /* ends redshift cycle */
+  
+  fclose(fid_sa); 
   exit(0);
 
 }  

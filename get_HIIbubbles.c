@@ -34,7 +34,7 @@ double Rion(float hmass, double redshift);
 double Rrec(float overdensity, double redshift);
 double G_H(double redshift);
 double XHI(double ratio);
-
+double Qion(double z);
 
 
 int main(int argc, char *argv[]) {
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
   double kk;
   double bfactor; /* value by which to divide bubble size R */
   double neutral,*xHI;
-  float *halo_map, *top_hat_r, *density_map,*bubblef, *bubble, *fresid;  
+  float *halo_map, *top_hat_r, *density_map,*bubblef, *bubble, *fresid, *halo_map1;  
   fftwf_complex *halo_map_c, *top_hat_c, *collapsed_mass_c, *density_map_c, *total_mass_c, *bubble_c;
   fftwf_plan pr2c1,pr2c2,pr2c3,pr2c4,pc2r1,pc2r2,pc2r3;
   double zmin,zmax,dz;
@@ -116,6 +116,10 @@ int main(int argc, char *argv[]) {
     exit(1);
   }  
   /* halo_map mass */ 
+  if(!(halo_map1=(float *) fftwf_malloc(global_N3_halo*sizeof(float)))) {
+    printf("Problem4...\n");
+    exit(1);
+  }
   if(!(halo_map=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
     printf("Problem4...\n");
     exit(1);
@@ -206,33 +210,56 @@ int main(int argc, char *argv[]) {
     fclose(fid);
     
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(global_N3_smooth, density_map, fresid, bubblef, halo_map, redshift) private(i)
+#pragma omp parallel for shared(global_N3_smooth, density_map, fresid, bubblef, redshift) private(i)
 #endif
     for(i=0;i<(global_N3_smooth);i++){
       fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift); // ratio between hydrogen recombination coefficient and uniform ionising background (Haardt & Madau (2012)). 
       fresid[i] = XHI(fresid[i]); // Residual neutral fraction following Popping et al. (2009).
       density_map[i]= Rrec(1.0+density_map[i], redshift); // Rrec from the CIC smoothed-nonlinear density field. 
       bubblef[i]=0.0;
-      halo_map[i] =0.0;
     }
 
-    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
-    fid=fopen(fname,"rb");
-    if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
-    elem=fread(&nhalos,sizeof(long int),1,fid);
-    printf("Reading %ld halos...\n",nhalos);fflush(0);
-    if(!(halo_v=(Halo_t *) malloc(nhalos*sizeof(Halo_t)))) { 
-      printf("Problem - halo...\n");
-      exit(1);
-    }
-    elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);
-    fclose(fid);
+    if(global_use_SFR==0) {  /* assume there are no SFRD boxes... */
+#ifdef _OMPTHREAD_
+#pragma omp parallel for shared(global_N3_halo, halo_map1) private(i)
+#endif
+      for(i=0;i<(global_N3_halo);i++){
+	halo_map1[i] =0.0;
+      }
+      sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
+      fid=fopen(fname,"rb");
+      if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
+      elem=fread(&nhalos,sizeof(long int),1,fid);
+      printf("Reading %ld halos...\n",nhalos);fflush(0);
+      if(!(halo_v=(Halo_t *) malloc(nhalos*sizeof(Halo_t)))) { 
+	printf("Problem - halo...\n");
+	exit(1);
+      }
+      elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);
+      fclose(fid);
     
-    // CIC smooth Rion//
-    for(i=0;i<nhalos;i++){
-      CIC_smoothing(halo_v[i].x, halo_v[i].y, halo_v[i].z, Rion(halo_v[i].Mass, redshift), halo_map, global_N_halo);
+      // CIC smooth Rion//
+      for(i=0;i<nhalos;i++){
+	CIC_smoothing(halo_v[i].x, halo_v[i].y, halo_v[i].z, Rion(halo_v[i].Mass, redshift), halo_map1, global_N_halo);  /* distributes Rion over cells */
+      }
+      free(halo_v);
+      smooth_sum(halo_map1, halo_map, global_N_halo, global_N_smooth);  /* Sums Rion over cells to reduce resolution... */
+      /* uses SFRD boxes instead: */
+    } else {
+      sprintf(fname, "%s/SFR/sfrd_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble);
+      fid=fopen(fname,"rb");
+      if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
+      elem=fread(halo_map,sizeof(float),global_N3_smooth,fid);
+      fclose(fid);
+      /* converts SFRD to Rion */
+#ifdef _OMPTHREAD_
+#pragma omp parallel for shared(global_N3_smooth, halo_map) private(i)
+#endif
+      for(i=0;i<(global_N3_smooth);i++){
+	halo_map[i] = halo_map[i]*global_dx_smooth*global_dx_smooth*global_dx_smooth*Qion(redshift);
+      }
     }
-
+      
     /* Quick fill of single cells before going to bubble cycle */
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(global_N3_smooth,halo_map,density_map,bubblef) private(i,tmp)
