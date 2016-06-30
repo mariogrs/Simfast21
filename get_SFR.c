@@ -95,7 +95,7 @@ int main(int argc, char **argv){
   
   /* redshift cycle */
   for(redshift=zmin;redshift<(zmax+dz/10);redshift+=dz){
-    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
+    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,global_L/global_hubble); 
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
     elem=fread(&nhalos,sizeof(long int),1,fid);
@@ -127,8 +127,8 @@ int main(int argc, char **argv){
     }     
     printf("Writing SFRD file...\n");
     sprintf(fname, "%s/SFR/sfrd_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble);
-    fid=fopen(fname,"rb");
-    if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
+    fid=fopen(fname,"wb");
+    if (fid==NULL) {printf("\nError opening %s file...\n",fname); exit (1);}
     elem=fwrite(sfr_box2,sizeof(float),global_N3_smooth,fid);
     fclose(fid); 
 

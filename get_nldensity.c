@@ -137,7 +137,15 @@ int main(int argc, char **argv){
     } else {
       growth=getGrowth(redshift)-growth_in;
       printf("Redshift: %lf\n",redshift);fflush(0);   
-      
+
+      /* turn into density fluctuation (no need to divide by average density and volume) */
+#ifdef _OMPTHREAD_
+#pragma omp parallel for shared(global_N3_halo,map_out) private(ind)
+#endif
+      for(ind=0;ind<global_N3_halo;ind++) {
+	map_out[ind]=-1.0;    
+      }
+
       /***************************** CIC smoothing ******************************************************/
     //#ifdef _OMPTHREAD_
     //#pragma omp parallel for shared(map_out,map_in,growth,global_N_halo) private(i,j,p,ind,x,y,z)
@@ -155,14 +163,6 @@ int main(int argc, char **argv){
 	}
       }
       
-      /* turn into density fluctuation (no need to divide by average density and volume) */
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(global_N3_halo,map_out) private(ind)
-#endif
-      for(ind=0;ind<global_N3_halo;ind++) {
-	map_out[ind]=-1.0;    
-      }
-
       printf("Smoothing...\n");fflush(0);   
       smooth_boxb(map_out, map_out2, global_N_halo, global_N_smooth);
       printf("Writing...\n");fflush(0);   

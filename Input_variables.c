@@ -98,7 +98,6 @@ void get_Simfast21_params(char *basedir){
 	if(strcmp(third,"F")==0) global_use_Lya_xrays=0;
       }
       else if(strcmp(first,"Zminsfr")==0) global_Zminsfr=atof(third);
-      else if(strcmp(first,"fstar")==0)global_fstar=atof(third);
       else if(strcmp(first,"Enu0")==0) global_Enu0=atof(third);
       else if(strcmp(first,"alpha_s")==0) global_alphas=atof(third);
       else if(strcmp(first,"L0")==0) global_L0=atof(third);
@@ -277,7 +276,6 @@ void print_parms(void) {
 
 
   /*--------- Parameters for X-ray heating and Lya coupling----------*/
-  printf("global_fstar: %f\n",global_fstar);
   printf("global_Enu0: %E\n",global_Enu0);
   printf("global_alphas: %f\n",global_alphas);
   printf("global_L0: %E\n",global_L0); 		

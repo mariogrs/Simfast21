@@ -97,8 +97,6 @@ int main(int argc, char *argv[]) {
     }
   }  
   
-  
-  
  /* Memory allocation - we could do some of the FFTs inline... */
  /*************************************************************/
   
@@ -225,8 +223,8 @@ int main(int argc, char *argv[]) {
 #endif
       for(i=0;i<(global_N3_halo);i++){
 	halo_map1[i] =0.0;
-      }
-      sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble); 
+      }      
+      sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,global_L/global_hubble); 
       fid=fopen(fname,"rb");
       if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
       elem=fread(&nhalos,sizeof(long int),1,fid);
