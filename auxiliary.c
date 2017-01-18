@@ -634,36 +634,37 @@ void box_symmetriesf(float complex *box, long int N) {
 
 
 /* ------------------------------------------------------------------------------------------------------------------*/
+/* -------- averages down the box ------------- */
 /* ------------------------------------------------------------------------------------------------------------------*/
-float *smooth_boxb(float *box, float *box_smoothed, long int N, long int Ns) {
+void smooth_box(float *box, float *box_smoothed, long int N, long int Ns) {
 
-  double av,sm,sm3;
-  long int i,j,p,ii,jj,pp,indi,indj,indp,ism;
-  long int inds;
+  double av,sm3;
+  long int i,j,p,ii,jj,pp,indi,indj,indp;
+  long int inds, sm;
 
   if(Ns>N) {
     printf("Problem - smooth_box: output N larger than input N\n");fflush(0);
     exit(1);
   }
 
-  sm=(1.0*N)/Ns;  /* Try an approximate thing in case N is not a multiple of Ns... */
-  ism=(long int)sm;
-  sm3=1.0*ism*ism*ism;
+  sm=(long int)roundf((1.0*N)/Ns);  /* Try an approximate thing in case N is not a multiple of Ns... */
+  if(Ns*sm > N) sm=sm-1;
+  sm3=1.0*sm*sm*sm;
   //  printf("smoothing box: %ld %ld %ld %lf %lf\n",N,Ns,ism,sm,sm3);fflush(0);
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(N,Ns,box,box_smoothed,sm,ism,sm3) private(i,j,p,inds,indi,indj,indp,av,ii,jj,pp)
+#pragma omp parallel for shared(N,Ns,box,box_smoothed,sm,sm3) private(i,j,p,inds,indi,indj,indp,av,ii,jj,pp)
 #endif 
   for(i=0;i<Ns;i++) {
     for(j=0;j<Ns;j++) {
       for(p=0;p<Ns;p++) {
 	inds=i*Ns*Ns+j*Ns+p;
-	indi=(long int)(i*sm);
-	indj=(long int)(j*sm);
-	indp=(long int)(p*sm);
+	indi=i*sm;
+	indj=j*sm;
+	indp=p*sm;
 	av=0.0;
-	for(ii=0;ii<ism;ii++) {
-	  for(jj=0;jj<ism;jj++) {
-	    for(pp=0;pp<ism;pp++) {
+	for(ii=0;ii<sm;ii++) {
+	  for(jj=0;jj<sm;jj++) {
+	    for(pp=0;pp<sm;pp++) {
 	      av+=box[(indi+ii)*N*N+(indj+jj)*N+(indp+pp)];
 	    }
 	  }
@@ -673,54 +674,6 @@ float *smooth_boxb(float *box, float *box_smoothed, long int N, long int Ns) {
       }
     }
   }
-
-  return box_smoothed;
-
-}
-
-
-/* ------------------------------------------------------------------------------------------------------------------*/
-/* ------------------------------------------------------------------------------------------------------------------*/
-/* sums over cells not average */
-float *smooth_sum(float *box, float *box_smoothed, long int N, long int Ns) {
-
-  double av,sm,sm3;
-  long int i,j,p,ii,jj,pp,indi,indj,indp,ism;
-  long int inds;
-
-  if(Ns>N) {
-    printf("Problem - smooth_box: output N larger than input N\n");fflush(0);
-    exit(1);
-  }
-
-  sm=(1.0*N)/Ns;  /* Try an approximate thing in case N is not a multiple of Ns... */
-  ism=(long int)sm;
-  sm3=1.0*ism*ism*ism;
-  //  printf("smoothing box: %ld %ld %ld %lf %lf\n",N,Ns,ism,sm,sm3);fflush(0);
-#ifdef _OMPTHREAD_
-#pragma omp parallel for shared(N,Ns,box,box_smoothed,sm,ism,sm3) private(i,j,p,inds,indi,indj,indp,av,ii,jj,pp)
-#endif 
-  for(i=0;i<Ns;i++) {
-    for(j=0;j<Ns;j++) {
-      for(p=0;p<Ns;p++) {
-	inds=i*Ns*Ns+j*Ns+p;
-	indi=(long int)(i*sm);
-	indj=(long int)(j*sm);
-	indp=(long int)(p*sm);
-	av=0.0;
-	for(ii=0;ii<ism;ii++) {
-	  for(jj=0;jj<ism;jj++) {
-	    for(pp=0;pp<ism;pp++) {
-	      av+=box[(indi+ii)*N*N+(indj+jj)*N+(indp+pp)];
-	    }
-	  }
-	}
-	box_smoothed[inds]=(float)av;
-      }
-    }
-  }
-
-  return box_smoothed;
 
 }
 
@@ -801,7 +754,7 @@ void get_collapsed_mass_boxb(float* halo_box,Halo_t *halo, long int nhalos){
 
 
 /* distributes a "cell mass" that is off center between the surrounding cells... */
-void CIC_smoothing(float x1, float y1, float z1, float map_in, float *map_out, long int N){
+void CIC(float x1, float y1, float z1, float map_in, float *map_out, long int N){
 
   long int i1,j1,p1,x,y,z;
   x = (long int) x1;

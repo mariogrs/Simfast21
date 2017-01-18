@@ -110,10 +110,6 @@ void get_Simfast21_params(char *basedir){
 	if(strcmp(third,"T")==0) global_save_original_deltanl=1;    
 	if(strcmp(third,"F")==0) global_save_original_deltanl=0;
       }      
-      else if(strcmp(first,"NL_halo_catalog")==0){
-	if(strcmp(third,"T")==0) global_save_nl_halo_cat=1;    
-	if(strcmp(third,"F")==0) global_save_nl_halo_cat=0;
-      }
 
     }   
   }
@@ -269,7 +265,6 @@ void print_parms(void) {
 
 
   /*-------------------Flags for output files and algorithm----------------------------------*/ 
-  printf("global_save_nl_halo_cat: %d\n",global_save_nl_halo_cat);
   printf("global_save_original_deltanl: %d\n",global_save_original_deltanl);
   printf("global_use_Lya_xrays: %d\n",global_use_Lya_xrays);
   printf("global_use_SFR: %d\n",global_use_SFR);

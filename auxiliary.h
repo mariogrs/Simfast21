@@ -57,13 +57,12 @@ double dgrowthdz(double redshift);
 double Hz(double z);
 
 
-float *smooth_boxb(float *box, float *box_smoothed, long int N, long int Ns);
-float *smooth_sum(float *box, float *box_smoothed, long int N, long int Ns);
+void smooth_box(float *box, float *box_smoothed, long int N, long int Ns);
 void box_symmetriesd(double complex *box, long int N);
 void box_symmetriesf(float complex *box, long int N);
 void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos);
 void get_collapsed_mass_boxb(float* halo_box,Halo_t *halo, long int nhalos);
-void CIC_smoothing(float x1, float y1, float z1, float map_in, float *map_out, long int N);
+void CIC(float x1, float y1, float z1, float map_in, float *map_out, long int N);
 
 
 

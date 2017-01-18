@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
   
   /****************************************************/
   /***************** Redshift cycle *******************/
-  printf("Number of bubble sizes: %d\n",(int)((log(global_bubble_Rmax)-log(2.*global_dx_smooth))/log(bfactor)));
+  printf("Number of bubble steps: %d\n",(int)((log10(global_bubble_Rmax)-log10(global_dx_smooth))/log10(bfactor)));  /**!!! need to check...!!!*/
   printf("Redshift cycle...\n");fflush(0);
   iz=0;
   neutral=0.;
@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
     for(i=0;i<(global_N3_smooth);i++){
       fresid[i] = (1. + density_map[i])*1.881e-7*pow(1.+redshift,3.0)*G_H(redshift); // ratio between hydrogen recombination coefficient and uniform ionising background (Haardt & Madau (2012)). 
       fresid[i] = XHI(fresid[i]); // Residual neutral fraction following Popping et al. (2009).
-      density_map[i]= Rrec(1.0+density_map[i], redshift); // Rrec from the CIC smoothed-nonlinear density field. 
+      density_map[i]= Rrec(1.0+density_map[i], redshift); // Rrec from the CIC nonlinear density field. 
       bubblef[i]=0.0;
     }
 
@@ -236,12 +236,18 @@ int main(int argc, char *argv[]) {
       elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);
       fclose(fid);
     
-      // CIC smooth Rion//
+      // CIC Rion//
       for(i=0;i<nhalos;i++){
-	CIC_smoothing(halo_v[i].x, halo_v[i].y, halo_v[i].z, Rion(halo_v[i].Mass, redshift), halo_map1, global_N_halo);  /* distributes Rion over cells */
+	CIC(halo_v[i].x, halo_v[i].y, halo_v[i].z, Rion(halo_v[i].Mass, redshift), halo_map1, global_N_halo);  /* distributes Rion over cells */
       }
       free(halo_v);
-      smooth_sum(halo_map1, halo_map, global_N_halo, global_N_smooth);  /* Sums Rion over cells to reduce resolution... */
+      smooth_box(halo_map1, halo_map, global_N_halo, global_N_smooth);  /* Sums Rion over cells to reduce resolution - smooth_box averages down the box */
+#ifdef _OMPTHREAD_
+#pragma omp parallel for shared(global_N3_smooth, halo_map, global_dx_halo, global_dx_smooth) private(i)
+#endif
+      for(i=0;i<(global_N3_smooth);i++){
+	halo_map[i] = halo_map[i]*pow(global_dx_smooth/global_dx_halo,3); /* corrects for the fact that we averaged instead of summing... */
+      }     
       /* uses SFRD boxes instead: */
     } else {
       sprintf(fname, "%s/SFR/sfrd_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble);
@@ -275,6 +281,7 @@ int main(int argc, char *argv[]) {
     fftwf_execute(pr2c2);   /* FFT halo map */
 
     
+    /****************************************************/
     /************** going over the bubble sizes ****************/
     R=global_bubble_Rmax;    /* Maximum bubble size...*/
     while(R>=2*global_dx_smooth){ 

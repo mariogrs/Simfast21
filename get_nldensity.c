@@ -146,7 +146,7 @@ int main(int argc, char **argv){
 	map_out[ind]=-1.0;    
       }
 
-      /***************************** CIC smoothing ******************************************************/
+      /***************************** Cloud In Cell distribution ******************************************************/
     //#ifdef _OMPTHREAD_
     //#pragma omp parallel for shared(map_out,map_in,growth,global_N_halo) private(i,j,p,ind,x,y,z)
     //#endif 
@@ -158,13 +158,13 @@ int main(int argc, char **argv){
 	    x1=i + map_veloc_realx[ind]*growth;
             y1=j + map_veloc_realy[ind]*growth;
             z1=p + map_veloc_realz[ind]*growth;
-	    CIC_smoothing(x1, y1, z1, map_in[ind], map_out, global_N_halo);  /* distributes the mass */
+	    CIC(x1, y1, z1, map_in[ind], map_out, global_N_halo);  /* distributes the mass */
 	  }
 	}
       }
       
       printf("Smoothing...\n");fflush(0);   
-      smooth_boxb(map_out, map_out2, global_N_halo, global_N_smooth);
+      smooth_box(map_out, map_out2, global_N_halo, global_N_smooth);
       printf("Writing...\n");fflush(0);   
       sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,(global_L/global_hubble)); 
       if((fid=fopen(fname,"wb"))==NULL){  

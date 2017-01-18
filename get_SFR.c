@@ -47,7 +47,7 @@ int main(int argc, char **argv){
     exit(1);
   }  
   get_Simfast21_params(argv[1]);
-  if((global_use_Lya_xrays==0) && (global_use_SFR==0)) {printf("Lya and xray use set to false - no need to calculate SFR\n");exit(0);}
+  if((global_use_Lya_xrays==0) && (global_use_SFR==0)) {printf("SFR, Lya and xray use set to false - no need to calculate SFR\n");exit(0);}
   if(global_use_SFR==1) { /* use SFR all the way... */
     zmin=global_Zminsim;
   } else zmin=global_Zminsfr;
@@ -112,18 +112,19 @@ int main(int argc, char **argv){
     for(i=0;i<(global_N3_halo);i++){
       sfr_box1[i] =0.0;
     }     
-    // CIC smooth Rion//
+    // CIC Rion//
     for(i=0;i<nhalos;i++){
-      CIC_smoothing(halo_v[i].x, halo_v[i].y, halo_v[i].z, sfr(halo_v[i].Mass, redshift), sfr_box1, global_N_halo); /* SFR in Msun/yr */
+      CIC(halo_v[i].x, halo_v[i].y, halo_v[i].z, sfr(halo_v[i].Mass, redshift), sfr_box1, global_N_halo); /* SFR in Msun/yr */
     }
     free(halo_v);
-    smooth_sum(sfr_box1, sfr_box2, global_N_halo, global_N_smooth); /* add SFR over smoothed cells */
+    smooth_box(sfr_box1, sfr_box2, global_N_halo, global_N_smooth); /* note: this averages SFR over smoothed cells  - we need to correct for sum... */
     /* convert to SFRD in units of Msun/(Mpc/h)^3/year */
+    /* also corrects for the fact that previous smooth was an average not a sum */
 #ifdef _OMPTHREAD_
-#pragma omp parallel for shared(global_N3_smooth, sfr_box2) private(i)
+#pragma omp parallel for shared(global_N3_smooth, sfr_box2, global_dx_halo) private(i)
 #endif
     for(i=0;i<(global_N3_smooth);i++){
-      sfr_box2[i] = sfr_box2[i]/global_dx_smooth/global_dx_smooth/global_dx_smooth;
+      sfr_box2[i] = sfr_box2[i]/pow(global_dx_halo,3);
     }     
     printf("Writing SFRD file...\n");
     sprintf(fname, "%s/SFR/sfrd_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,global_L/global_hubble);
@@ -133,6 +134,7 @@ int main(int argc, char **argv){
     fclose(fid); 
 
   /* average */
+  fprintf(fid_sa,"# Average SFRD in units of Msun/(Mpc/h)^3/year (columns: redshift   SFRD)\n");
   sfrd_aver=0.0;
   for(i=0;i<(global_N3_smooth);i++){
     sfrd_aver+=sfr_box2[i];
