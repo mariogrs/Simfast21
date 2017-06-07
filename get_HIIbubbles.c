@@ -216,7 +216,7 @@ int main(int argc, char *argv[]) {
       halo_map[i] =0.0;
     }
 
-    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_smooth,global_L/global_hubble);
+    sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,global_L/global_hubble);
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
     elem=fread(&nhalos,sizeof(long int),1,fid);
@@ -230,7 +230,7 @@ int main(int argc, char *argv[]) {
 
     // CIC smooth Rion//
     for(i=0;i<nhalos;i++){
-      CIC_smoothing(halo_v[i].x, halo_v[i].y, halo_v[i].z, Rion(halo_v[i].Mass, redshift), halo_map, global_N_halo);
+      CIC_smoothing(halo_v[i].x, halo_v[i].y, halo_v[i].z, Rion(halo_v[i].Mass, redshift), halo_map, global_N_smooth);
     }
 
     /* Quick fill of single cells before going to bubble cycle */
