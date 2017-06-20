@@ -86,7 +86,7 @@ int main(int argc,char * argv[]) {
   /**************************************************/
   for(z=zmax; z > (zmin-dz/10); z-=dz) {
     printf("z: %f\n",z);fflush(0);
-    sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
+    sprintf(fname,"%s/xrays/TempX_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
     if((filetx = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping redshift...\n",fname);
       fclose(filetx);
@@ -108,17 +108,17 @@ int main(int argc,char * argv[]) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
       }
-      sprintf(fname,"%s/xrays/EpsilonXon_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/xrays/EpsilonXon_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((fileEnergy = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
       }
-      sprintf(fname,"%s/xrays/xe_heat_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/xrays/xe_heat_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((fileEnergycum = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
       }
-      sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/xrays/TempX_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((filetx = fopen(fname,"wb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
@@ -126,7 +126,7 @@ int main(int argc,char * argv[]) {
       
       /* read previous temperature calculation at z+deltatime */    
       if (z<(zmax-dz/10)) {
-	sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],z+global_Dzsim,global_N_smooth,global_L/global_hubble);    
+	sprintf(fname,"%s/xrays/TempX_z%.3f_N%ld_L%.1f.dat",argv[1],z+global_Dzsim,global_N_smooth,global_L/global_hubble);    
 	if((filetxold = fopen(fname,"rb"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);

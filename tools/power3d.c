@@ -42,7 +42,7 @@ int main(int argc, char **argv){
 
   /* dl is now size of cell */
 #ifdef _OMPTHREAD_
-  printf("# SYNTAX: power3df Nbytes N1 N2 N3 dl flag input_file nthreads (output goes to standard output)\n\n");
+  printf("# SYNTAX: power3d Nbytes N1 N2 N3 dl flag input_file nthreads (output goes to standard output)\n\n");
   if(argc != 9) exit(1);
   nthreads=atoi(argv[8]);
   omp_set_num_threads(nthreads);

@@ -81,9 +81,9 @@ char global_camb_file[99];
 
 /*-------------------Flags for output files and algorithm----------------------------------*/ 
 int global_use_sgrid;
-int global_save_nl_halo_cat;
 int global_save_original_deltanl;
 int global_use_Lya_xrays;
+int global_use_SFR;
 
 
 /*--------- Parameters for X-ray heating and Lya coupling----------*/
@@ -92,8 +92,6 @@ double global_Enu0;
 double global_alphas;
 double global_L0; 		
 double global_flux_Rmax;
-double global_A_Lya;
-double global_alpha_Lya;
 
 
 

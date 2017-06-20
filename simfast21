@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/bin/sh
 
 echo
-echo SimFast21 v1.5
+echo SimFast21
 echo Generating the simulation in directory: $1
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 echo
+
+DIR="${0%/*}"
+
 echo ------------------------------------------ Density Field ------------------------------------------
 ${DIR}/get_densityfield.x $1
 echo
@@ -22,11 +22,11 @@ echo
 echo ------------------------------------------ Adjusted halo box ------------------------------------------
 ${DIR}/adjust_halos.x $1 
 echo
+echo ------------------------------------------ SFRD box if needed ------------------------------------------
+${DIR}/get_SFR.x $1 
+echo
 echo ------------------------------------------ Ionization fraction ------------------------------------------
 ${DIR}/get_HIIbubbles.x $1
-echo
-echo ------------------------------------------ Star Formation Rate ------------------------------------------
-${DIR}/get_SFR.x $1         
 echo
 echo ------------------------------------------ Epsilon over n ------------------------------------------
 ${DIR}/epsilonXon.x $1      

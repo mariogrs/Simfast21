@@ -3,6 +3,7 @@
 SimFast21
 Name: get_velocityfield                                                       
 Calculates the velocity field from the linear density one
+Outputs velocity in Mpc (growth rate missing)
 *******************************************************************************/
 
 /* --------------Includes ----------------------------------------- */
@@ -68,12 +69,12 @@ int main(int argc, char **argv){
    printf("Problem allocating memory for x velocity field in k-space...\n");
    exit(1);
  } 
- /* Tansformacoes de fourier para calcular as caixas vx(x) vx(y) e vx(z) */
+ /* Fourier tranforms for the velocity boxes */
  if(!(pc2r=fftwf_plan_dft_c2r_3d(global_N_halo, global_N_halo, global_N_halo, map_vel_c, map, FFTW_ESTIMATE))) { 
    printf("Problem...\n");
    exit(1);
  }
- /* FFT para map */
+ /* FFT to map */
  if(!(pr2c=fftwf_plan_dft_r2c_3d(global_N_halo, global_N_halo, global_N_halo, map , map_in_c, FFTW_ESTIMATE))) { 
    printf("Problem...\n");
    exit(1);
@@ -128,7 +129,7 @@ int main(int argc, char **argv){
      for(p=0;p<=global_N_halo/2;p++) {
        kk=global_dk*sqrt(indi*indi+indj*indj+p*p);	
        if(kk>0){ 
-	 // Normalise by inputing dx and dk
+	 // Normalize by including dx and dk
 	 map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=I*(global_dk)*(1/(kk*kk))*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]*global_dx_halo*global_dx_halo*global_dx_halo/global_L3;  
 	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=indi*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]/global_hubble; /* to turn velocity from Mpc/h to Mpc */  
        }else{
@@ -172,7 +173,6 @@ int main(int argc, char **argv){
      for(p=0;p<=global_N_halo/2;p++) {
        kk=global_dk*sqrt(indi*indi+indj*indj+p*p);	
        if(kk>0){ 
-	 //Normalizacao pois a biblioteca fftw3 não tem dx nem global_dk nos integrais
 	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=indj*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]/global_hubble;  
        }else{
 	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=0;
@@ -214,7 +214,6 @@ int main(int argc, char **argv){
      for(p=0;p<=global_N_halo/2;p++) {
        kk=global_dk*sqrt(indi*indi+indj*indj+p*p);	
        if(kk>0){ 
-	 //Normalizacao pois a biblioteca fftw3 não tem dx nem global_dk nos integrais
 	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=p*map_in_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]/global_hubble;  
        }else{
 	 map_vel_c[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=0;

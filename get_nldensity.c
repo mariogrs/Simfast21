@@ -2,6 +2,7 @@
 /**************************************************************************************************************
 SimFast21
 Output: delta(z) with nonlinear corrections
+New correction: uses Cloud-in-a-Cell algorithm to distribute the mass
 **************************************************************************************************************/
 
 /* --------------Includes ----------------------------------------- */
@@ -123,32 +124,33 @@ int main(int argc, char **argv){
 #pragma omp parallel for shared(growth_in,global_N3_halo,map_in) private(ind)
 #endif
   for(ind=0;ind<global_N3_halo;ind++) {
-    map_in[ind]=map_in[ind]*growth_in+1.0;   
+    map_in[ind]=map_in[ind]*growth_in+1.0;   /* turn into mass (no need to multiply by average density and cell volume) */
   }
 
   /***********************************************************************/
   /*********** Redshift cycle ********************************************/
   for(redshift=zmax;redshift>(zmin-dz/10.);redshift-=dz){
     
+    printf("Generating delta_nl for redshift: %lf\n",redshift);fflush(0);   
     sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,(global_L/global_hubble)); 
     if((fid=fopen(fname,"rb"))!=NULL){  
       printf("File %s already exists - skipping...\n",fname);
       fclose(fid);
     } else {
       growth=getGrowth(redshift)-growth_in;
-      printf("Redshift: %lf\n",redshift);fflush(0);   
-      
+      /* turn into density fluctuation (no need to divide by average density and volume) - see later */
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(global_N3_halo,map_out) private(ind)
 #endif
       for(ind=0;ind<global_N3_halo;ind++) {
 	map_out[ind]=-1.0;    
       }
-      /***************************** CIC smoothing ******************************************************/
+
+      /***************************** Cloud In Cell distribution ******************************************************/
     //#ifdef _OMPTHREAD_
     //#pragma omp parallel for shared(map_out,map_in,growth,global_N_halo) private(i,j,p,ind,x,y,z)
     //#endif 
-      printf("Adjusting...\n");fflush(0);   
+      //      printf("Adjusting...\n");fflush(0);   
       for(i=0;i<global_N_halo;i++){
 	for(j=0;j<global_N_halo;j++){
 	  for(p=0;p<global_N_halo;p++){
@@ -156,14 +158,14 @@ int main(int argc, char **argv){
 	    x1=i + map_veloc_realx[ind]*growth;
             y1=j + map_veloc_realy[ind]*growth;
             z1=p + map_veloc_realz[ind]*growth;
-	    CIC_smoothing(x1, y1, z1, map_in[ind], map_out, global_N_halo);
+	    CIC(x1, y1, z1, map_in[ind], map_out, global_N_halo);  /* distributes the mass */
 	  }
 	}
       }
-
-      printf("Smoothing...\n");fflush(0);   
-      smooth_boxb(map_out, map_out2, global_N_halo, global_N_smooth);
-      printf("Writing...\n");fflush(0);   
+      
+      //     printf("Smoothing...\n");fflush(0);   
+      smooth_box(map_out, map_out2, global_N_halo, global_N_smooth); // smooths the box by averaging
+      //    printf("Writing...\n");fflush(0);   
       sprintf(fname, "%s/delta/deltanl_z%.3f_N%ld_L%.1f.dat",argv[1],redshift,global_N_smooth,(global_L/global_hubble)); 
       if((fid=fopen(fname,"wb"))==NULL){  
 	printf("\nError opening output nl_density file... Check path...\n");

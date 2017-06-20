@@ -38,7 +38,7 @@ void get_Simfast21_params(char *basedir){
       n=sscanf(line,"%s %s",first, third);
       if(n!=2 || strlen(first)==0 || strlen(third)==0) {printf("Wrong format! Exiting...\n"); printf("%s\n",line); exit(1);}
 
-      /* Simulation */
+      /***** Simulation parameters *****/
       else if(strcmp(first,"nthreads")==0)global_nthreads=atoi(third);
       else if(strcmp(first,"dz")==0)global_Dzsim=atof(third);
       else if(strcmp(first,"zmax")==0)global_Zmaxsim=atof(third);
@@ -56,7 +56,7 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"N_halo")==0)global_N_halo=atoi(third);
       else if(strcmp(first,"N_smoothed")==0)global_N_smooth=atoi(third);
 
-      /* Cosmology */
+      /***** Cosmological parameters *****/
       if(strcmp(first,"use_camb_matterpower")==0){
 	if(strcmp(third,"T")==0) global_pk_flag=1;    
 	if(strcmp(third,"F")==0) global_pk_flag=0;    
@@ -89,28 +89,25 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"bubble_Nbins")==0)global_bubble_Nbins=atoi(third);
 
       /* xray + Lya */
+      else if(strcmp(first,"use_SFR")==0){
+      	if(strcmp(third,"T")==0) global_use_SFR=1;    
+	if(strcmp(third,"F")==0) global_use_SFR=0;
+      }
       else if(strcmp(first,"use_Lya_xrays")==0){
       	if(strcmp(third,"T")==0) global_use_Lya_xrays=1;    
 	if(strcmp(third,"F")==0) global_use_Lya_xrays=0;
       }
       else if(strcmp(first,"Zminsfr")==0) global_Zminsfr=atof(third);
-      else if(strcmp(first,"fstar")==0)global_fstar=atof(third);
       else if(strcmp(first,"Enu0")==0) global_Enu0=atof(third);
       else if(strcmp(first,"alpha_s")==0) global_alphas=atof(third);
       else if(strcmp(first,"L0")==0) global_L0=atof(third);
       else if(strcmp(first,"flux_Rmax")==0) global_flux_Rmax=atof(third); /* Mpc */
-      else if(strcmp(first,"A_Lya")==0) global_A_Lya=atof(third);
-      else if(strcmp(first,"alpha_Lya")==0) global_alpha_Lya=atof(third);
 
       /* Auxiliary */
       else if(strcmp(first,"Original_nldensity_box")==0){
 	if(strcmp(third,"T")==0) global_save_original_deltanl=1;    
 	if(strcmp(third,"F")==0) global_save_original_deltanl=0;
       }      
-      else if(strcmp(first,"NL_halo_catalog")==0){
-	if(strcmp(third,"T")==0) global_save_nl_halo_cat=1;    
-	if(strcmp(third,"F")==0) global_save_nl_halo_cat=0;
-      }
 
     }   
   }
@@ -266,19 +263,16 @@ void print_parms(void) {
 
 
   /*-------------------Flags for output files and algorithm----------------------------------*/ 
-  printf("global_save_nl_halo_cat: %d\n",global_save_nl_halo_cat);
   printf("global_save_original_deltanl: %d\n",global_save_original_deltanl);
   printf("global_use_Lya_xrays: %d\n",global_use_Lya_xrays);
+  printf("global_use_SFR: %d\n",global_use_SFR);
 
 
   /*--------- Parameters for X-ray heating and Lya coupling----------*/
-  printf("global_fstar: %f\n",global_fstar);
   printf("global_Enu0: %E\n",global_Enu0);
   printf("global_alphas: %f\n",global_alphas);
   printf("global_L0: %E\n",global_L0); 		
   printf("global_flux_Rmax: %f\n",global_flux_Rmax);
-  printf("global_A_Lya: %f\n",global_A_Lya);
-  printf("global_alpha_Lya: %E\n",global_alpha_Lya); 		
   printf("\n");
 
   fflush(0);

@@ -2,6 +2,7 @@
 /************************************************************************
 SimFast21
 User defined functions that are used in the simulation, such as fitting functions...
+See arXiv:1510.04280 for more details
 *************************************************************************/
 
 #include <stdio.h>
@@ -17,11 +18,17 @@ double Rion(float hmass, double redshift);
 double Rrec(float overdensity, double redshift);
 double G_H(double redshift);
 double XHI(double ratio);
+double sfr(float hmass, double z);
+double Qion(double z);
+double ebG(double nu);
+
 
 #define CM_PER_MPC 3.0857e24
 
 
+/* units of s^-1 */
 /***************   Rion *************/
+/* ionisation rate */
 #define c1      7.25511524e+39
 #define c2      9.367608e+07
 #define c3      4.09039945e-01
@@ -40,6 +47,7 @@ double Rion(float hmass, double redshift){
 
 
 /***************   Rrec *************/
+/* recombination rate */
 #define r1 9.84815696
 #define r2 1.76105133
 #define r3 0.81722878
@@ -55,15 +63,38 @@ double Rrec(float overdensity, double redshift){
 }
 
 
+/********* SFR ****************/
+/* units: M/yr */
+
+double sfr(float hmass, double z) {
+
+  return (Rion(hmass,z)/Qion(z));
+
+}
+
+
+/********* Qion ****************/
+/* units: yr*s^-1*M^-1 */
+
+#define a 2.05707274e-02
+#define b 5.29944413e+01
+
+double Qion(double z) {
+
+  return pow(10.0, a*z + b - 45.0);
+
+}
+
 
 /********** ratio between recombination rate coefficient (at T=10^4K) and interpolation function of Haardt & Madau (2012) uniform ionising background  ****************/
-
 double G_H(double redshift){
   double gh_tmp1 =   1.86956756e-17*pow(redshift,5.)  - 9.05797228e-16*pow(redshift,4.) +  1.56916163e-14*pow(redshift,3.);
   double gh_tmp2 =   -1.07046180e-13*pow(redshift,2.) + 1.15923648e-13*redshift + 1.04351586e-12;
   double b_h =  4.19232273531e-13/(gh_tmp1 + gh_tmp2);
   return b_h;
 }
+
+
 /**************************** Popping et al. (2009) formula to compute the residual neutral fraction from ionising background ********/
 double XHI(double ratio){
   double XHI_tmp1 = 2.*ratio + 1. - sqrt((2.*ratio + 1.)*(2.*ratio + 1.) - 4.*ratio*ratio  );
@@ -72,3 +103,18 @@ double XHI(double ratio){
   else  return XHI_tmp3;
 }
 
+
+
+/* for xalpha calculation
+/* generic function for number photons/baryon/freq.(Hz)  - use: A*nu^-alpha */
+/* Assumes A/nu^0.9 SED with 20,000 Lyman photons/baryon between Lya and Ly_limit */
+/* We can change A and index 0.9 (A is degenerate with SFR efficiency */
+/* Frequency in Hz */
+double ebG(double nu) {
+
+  double A_Lya = 1979.878526;
+  double alpha_Lya = 0.9;
+
+  return A_Lya*pow(nu,-alpha_Lya);
+
+}

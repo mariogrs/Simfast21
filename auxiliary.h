@@ -13,15 +13,8 @@ SimFast21
 typedef struct Halo_t_
 {
   float Mass;
-  int x,y,z;
+  float x,y,z;
 } Halo_t;
-
-
-/* Halo structure for Garrelt files */
-typedef struct Halo_sim_
-{
-  float val[11]; /* 3 positions in cMpc, 3 velocities in Km/s, 3 velocity dispersions in Km/s, radius and halo mass in log10(M/Msun) */
-} Halo_sim;
 
 
 /* For T_k */
@@ -57,12 +50,12 @@ double dgrowthdz(double redshift);
 double Hz(double z);
 
 
-float *smooth_boxb(float *box, float *box_smoothed, long int N, long int Ns);
+void smooth_box(float *box, float *box_smoothed, long int N, long int Ns);
 void box_symmetriesd(double complex *box, long int N);
 void box_symmetriesf(float complex *box, long int N);
 void get_collapsed_mass_box(float* halo_box,Halo_t *halo, long int nhalos);
 void get_collapsed_mass_boxb(float* halo_box,Halo_t *halo, long int nhalos);
-void CIC_smoothing(float x1, float y1, float z1, float map_in, float *map_out, long int N);
+void CIC(float x1, float y1, float z1, float map_in, float *map_out, long int N);
 
 
 

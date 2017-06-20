@@ -210,8 +210,8 @@ int main(int argc, char * argv[]) {
   for(nzbox=nzsfr-1;nzbox >= 0;nzbox--) {
     
     /* our box is at nzbox */
-    printf("\n\nztocompute: %f\n",zbox[nzbox]);fflush(0);
-    sprintf(fname,"%s/xrays/EpsilonXon_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
+    printf("\n\n epsilon_n - ztocompute: %f\n",zbox[nzbox]);fflush(0);
+    sprintf(fname,"%s/xrays/EpsilonXon_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
     if((file = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping this redshift...\n",fname);
       fclose(file);
@@ -256,7 +256,7 @@ int main(int argc, char * argv[]) {
       for(box=0;box<numboxes;box++) {
 	printf("Read SFR %li at z=%5.3lf\n",box,zbox[box+nzbox]);fflush(0);
 	/* SFR in comoving (h/Mpc)**3 */
-	sprintf(fname,"%s/SFR/sfrd_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[box+nzbox],global_N_smooth,global_L/global_hubble);
+	sprintf(fname,"%s/SFR/sfrd_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[box+nzbox],global_N_smooth,global_L/global_hubble);
 	if((file = fopen(fname,"r"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -584,7 +584,7 @@ double get_n(double z, int species) {
 
   if((z<tablen[species].xmin) || (z>tablen[species].xmax)) {
     printf("!!ERROR1!!\n");
-    printf("valeurs : %lf %lf %lf\n",z,tablen[species].xmin,tablen[species].xmax);
+    printf("values : %lf %lf %lf\n",z,tablen[species].xmin,tablen[species].xmax);
     exit(1);
   }
 
@@ -602,7 +602,7 @@ double get_kernval(double z, int species) {
 
   if((z<tableker[species].xmin) || (z>tableker[species].xmax)) {
     printf("!!ERROR1!!\n");
-    printf("valeurs : %lf %lf %lf\n",z,tableker[species].xmin,tableker[species].xmax);
+    printf("values : %lf %lf %lf\n",z,tableker[species].xmin,tableker[species].xmax);
     exit(1);
   }
 

@@ -4,7 +4,7 @@ SimFast21
 Name: get_densityfield										     
 Description: This routines generates a Monte Carlo realization of the linear density field 
 normalized by the matter power spectrum form the Eisenstein&Hu fitting formulae (or CAMB) at z=0
-Output: delta at z=0 (not the density but the fluctutation: density/average-1, box size in Mpc
+Output: delta at z=0 (not the density but the fluctutation: density/average-1), box size in Mpc
 ****************************************************************************************************/
 
 #include <math.h>
@@ -30,7 +30,7 @@ Output: delta at z=0 (not the density but the fluctutation: density/average-1, b
 
 double *matrix_power[2];
 long int iMax_ps; /* number of points actually read from the power spectrum file*/
-double factor;
+double factor;  /* sig8 normalisation factor */
 
 
 /*Power spectrum at z=0  */
@@ -120,27 +120,28 @@ int main(int argc, char **argv){
   
   printf("Allocating memory...\n\n"); fflush(0);
   if(!(map_f=(float *) fftwf_malloc(global_N_halo*global_N_halo*global_N_halo*sizeof(float)))) {    /* get memory for float map */
-    printf("Problem1...\n");
+    printf("Problem: memory allocation 1...\n");
     exit(1);
   } 
  
   if(!(map_in = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex)* global_N_halo*global_N_halo*(global_N_halo/2+1)))) {  
-    printf("Problem2...\n");
+    printf("Problem: memory allocation 2...\n");
     exit(1);
   }
   /* Prepare FFT to real space (use map_f as output) */
   /* the complex input map is just map_in (same structure) */
   if(!(pc2r=fftwf_plan_dft_c2r_3d(global_N_halo, global_N_halo, global_N_halo, map_in, map_f, FFTW_ESTIMATE))) { 
-    printf("Problem...\n");
+    printf("Problem with fftwf_plan...\n");
     exit(1);
   }   
- 
+
+  /* use CAMB instead */
   if(global_pk_flag==1){
     sprintf(fname, "%s/%s",argv[1],global_pk_filename);
     printf("Using matter power spectrum from CAMB output: %s\n",fname);
     if((file_power=fopen(fname,"r"))==NULL){  
       printf("\nThe CAMB Pk file cannot be open\n");
-      exit(1);;
+      exit(1);
     }
     iMax_ps=0;
     while(!feof(file_power)){     
@@ -168,7 +169,7 @@ int main(int argc, char **argv){
   }  
 
 
-  printf("Construct density field in k-space\n");fflush(0);
+  printf("Construct dark matter density field in k-space\n");fflush(0);
 
   /* gets random values (period must be larger than global_N_halo**3)
      parallelization requires to "carefully" initialize the RNG for each thread - leave it for now...

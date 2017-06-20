@@ -1,0 +1,124 @@
+
+Descritpion of the simulation output files (in the order they are produced):
+
+- delta/delta_z0_N%ld%_L%k%.dat
+Box with delta at z=0 (not the density but the fluctutation: density/average-1), box size in Mpc
+%ld% = number of cells along one side of the unsmoothed boxes (global_N_halo)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Halos/halo_z%f%_N%ld%_L%k%.dat.catalog
+Binary file - catalogue with mass and position of every halo found (first entry: long int with number of halos, then a structure for each halo: float Mass, x,y,z)
+%f% = redshift to 3 decimal cases
+%ld% = number of cells along one side of the unsmoothed boxes (global_N_halo)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Velocity/vel_x_z0_N%ld%_L%k%.dat
+Box in the x, y or z direction of the velocity in Mpc (growth rate missing)
+%ld% = number of cells along one side of the unsmoothed boxes (global_N_halo)
+%k% = length of the box in Mpc to 1 decimal case
+
+- delta/deltanl_z%f%_N%ld%_L%k%.dat
+Box with delta(z) (density/average-1) including non-linear corrections and smoothed to lower resolution 
+%f% = redshift to 3 decimal cases
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- delta/deltanl_o_z%f%_N%d%_L%k%.dat",
+same as above but for the full resolution - not outputted unless specifically asked
+%f% = redshift to 3 decimal cases
+%ld% = number of cells along one side of the unsmoothed boxes (global_N_halo)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Halos/halonl_z%f%_N%ld%_L%k%.dat.catalog
+full non-linear halo catalog with new halo positions (same format as the halo catalogue above)
+%f% = redshift to 3 decimal cases
+%ld% = number of cells along one side of the unsmoothed boxes (global_N_halo)
+%k% = length of the box in Mpc to 1 decimal case
+
+- SFR/sfrd_z%f%_N%d%_L%k%.dat
+Box with star formation rate density in Msun/(Mpc/h)^3/year (smoothed size)
+%f% = redshift to 3 decimal cases
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Output_text_files/sfrd_av_N%d%_L%k%.da
+text file with average SFRD in units of Msun/(Mpc/h)^3/year (columns: redshift   SFRD)
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Ionization/xHII_z%f%_N%d%_L%k%.dat
+Box with the ionisation fraction at a given z (values between 0 and 1).
+%f% = redshift to 3 decimal cases
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Output_text_files/zsim.txt
+column with redshift values (first line with highest reshift).
+
+- Output_text_files/x_HI_N%d%_L%k%.dat
+The average neutral fraction as a function of redshift (first line corresponds to highest z).
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+
+- Output_text_files/xa_av_N%d%_L%k%.dat
+The average xalpha parameter (Lya coupling). Columns: z and xalpha (first line with highest redshift)
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Lya/xalpha_z%f%_N%d%_L%k%.dat
+Box with xalpha at a given z (equation 9 in http://arxiv.org/abs/0911.2219)
+%f% = redshift to 3 decimal cases
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- xrays/EpsilonXon_z%f%_N%d%_L%k%.dat
+Box with EpsilonXon at a given z (equation 15 in http://arxiv.org/abs/0911.2219). Total x-ray energy per unit time deposited in a given cell (units of joules/s) 
+%f% = redshift to 3 decimal cases
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- xrays/xe_heat_z%f%_N%d%_L%k%.dat
+Box with xe (ionization fraction only due to X rays) at a given z (equation 24 in http://arxiv.org/abs/0708.2424)
+%f% = redshift to 3 decimal cases
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- xrays/TempX_z%f%_N%d%_L%k%.dat
+Box with temperature due to x-ray heating (in K) at a given z (equation 23 in http://arxiv.org/abs/0708.2424)
+%f% = redshift to 3 decimal cases
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+
+- Output_text_files/Temp_av_N%d%_L%k%.dat
+The average Temperature due to x-ray heating (in K). Columns: z and Temperature (first line with highest redshift)
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- x_c/xc_z%f%_N%d%_L%k%.dat
+Box with collisional coupling parameter (equation 10 in http://arxiv.org/abs/0708.2424)
+%f% = redshift to 3 decimal cases
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Output_text_files/xc_av_N%d%_L%k%.dat
+The average xc parameter (collisional coupling). Columns: z and xc (first line with highest redshift)
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- deltaTb/deltaTb_z%f%_N%d%_L%k%.dat
+Box with the 21cm temperature (in Kelvin)
+%f% = redshift to 3 decimal cases
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Output_text_files/t21_av_N%d%_L%k%.dat
+The average 21cm temperature (K). Columns: z and T21 (first line with highest redshift)
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case
+
+- Output_text_files/TS_av_N%d%_L%k%.dat
+The average spin temperature (K). Columns: z and TS (first line with highest redshift)
+%d% = number of cells along one side of the smoothed boxes (global_N_smooth)
+%k% = length of the box in Mpc to 1 decimal case

@@ -110,7 +110,7 @@ int main(int argc, char * argv[]) {
 
     /* our box is at nzbox */
     printf("ztocompute: %f\n",zbox[nzbox]);fflush(0);
-    sprintf(fname,"%s/x_c/xc_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
+    sprintf(fname,"%s/x_c/xc_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
     if((fid = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping this redshift...\n",fname);
       fclose(fid);
@@ -127,7 +127,7 @@ int main(int argc, char * argv[]) {
       if (fid==NULL) {printf("\nError reading deltanl file... Check path or if the file exists..."); exit (1);}
       fread(density_map,sizeof(float),global_N3_smooth,fid);
       fclose(fid);
-      sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/xrays/TempX_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
       if((fid = fopen(fname,"rb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
@@ -152,7 +152,7 @@ int main(int argc, char * argv[]) {
 	//    xc_e=((1-(double)fHI[i])*nH_bar+nHe_bar*(2.-2.*fHeI[i]-fHeII[i]))*(double)rho_mat[i]*kappa_e(temp)/A10*Tstar/Tcmb;
 	xc[i]=(float)(xc_HI+xc_e);
       }
-      sprintf(fname,"%s/x_c/xc_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/x_c/xc_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
       if((fid = fopen(fname,"wb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);

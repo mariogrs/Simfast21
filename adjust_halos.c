@@ -23,7 +23,7 @@ int main(int argc, char **argv){
   
   FILE *fid;
   long int i;
-  long int x,y,z;
+  float x,y,z;
   long int nhalos;
   long int indice;  
   float *map_veloc_realx;
@@ -121,24 +121,21 @@ int main(int argc, char **argv){
     elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);  
     fclose(fid);    
     
-    printf("Adjusting halo positions...\n");fflush(0);
+    //    printf("Adjusting halo positions...\n");fflush(0);
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(nhalos,halo_v,map_veloc_realx,map_veloc_realy,map_veloc_realz,global_N_halo) private(i,indice,x,y,z)
 #endif  
     for(i=0;i<nhalos;i++){
-      x= (long int)halo_v[i].x;     
-      y= (long int)halo_v[i].y;  
-      z= (long int)halo_v[i].z;    
-      indice=(long int)(x*global_N_halo*global_N_halo+y*global_N_halo+z);
-      x += (long int)(map_veloc_realx[indice]*growth);         
-      y += (long int)(map_veloc_realy[indice]*growth);         
-      z += (long int)(map_veloc_realz[indice]*growth);             
-      x=check_borders(x,global_N_halo);
-      y=check_borders(y,global_N_halo);
-      z=check_borders(z,global_N_halo);
-      halo_v[i].x=(int)x;
-      halo_v[i].y=(int)y;
-      halo_v[i].z=(int)z;   
+      x= halo_v[i].x;     
+      y= halo_v[i].y;  
+      z= halo_v[i].z;    
+      indice=(long int)(((int)x)*global_N_halo*global_N_halo+((int)y)*global_N_halo+(int)z);
+      x += (map_veloc_realx[indice]*growth);         
+      y += (map_veloc_realy[indice]*growth);         
+      z += (map_veloc_realz[indice]*growth);             
+      halo_v[i].x=x;
+      halo_v[i].y=y;
+      halo_v[i].z=z;   
     }
 
     printf("Writing full non-linear halo catalog\n");fflush(0);
