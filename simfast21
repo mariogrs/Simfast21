@@ -3,10 +3,10 @@
 echo
 echo SimFast21
 echo Generating the simulation in directory: $1
+echo
 
 DIR="${0%/*}"
 
-echo
 echo ------------------------------------------ Density Field ------------------------------------------
 ${DIR}/get_densityfield.x $1
 echo

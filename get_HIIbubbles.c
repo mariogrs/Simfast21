@@ -18,9 +18,9 @@ M. G. Santos, L. Ferramacho, M. B. Silva, A. Amblard, A. Cooray, MNRAS 2010, htt
 #include <string.h>
 #include <complex.h>   /* header for complex numbers in c */
 #include <fftw3.h>     /* headers for FFTW library */
+#include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <dirent.h>
 
 #include "Input_variables.h"
 #include "auxiliary.h"
