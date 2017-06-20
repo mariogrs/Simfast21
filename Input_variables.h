@@ -92,8 +92,6 @@ double global_Enu0;
 double global_alphas;
 double global_L0; 		
 double global_flux_Rmax;
-double global_A_Lya;
-double global_alpha_Lya;
 
 
 

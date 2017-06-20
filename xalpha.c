@@ -19,6 +19,8 @@ Calculates xalpha (Lya - coupling see Santos et al 2008/2010)
 
 #include "Input_variables.h"
 
+double ebG(double nu);
+
 
 double nualpha; /* Hz */
 double nubeta; /* Hz */
@@ -49,7 +51,6 @@ double * produceKernel(long int N, double z, double zp, double zmax, double (* e
 double emis(double z, double zp, double (* eb)(double));
 double * convertfloat2doublearr(float * arr, long nele);
 
-double ebG(double nu);
 double get_int_r(double z); 
 void create_rz_table(double zmin, double zmax, int n, r_table *rtab, z_table *ztab); 
 double get_r(double z, r_table *rtab); 
@@ -157,14 +158,15 @@ int main(int argc, char * argv[]) {
   for(nzbox=nzsfr-1;nzbox >= 0;nzbox--) {
     /* our box is at nzbox */
    
-    printf("\n\nztocompute: %f\n",zbox[nzbox]);fflush(0);
-    sprintf(fname,"%s/Lya/xalpha_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
+    printf("\n\n Lya ztocompute: %f\n",zbox[nzbox]);fflush(0);
+    sprintf(fname,"%s/Lya/xalpha_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
     if((file = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping this redshift...\n",fname);
       fclose(file);
+      
     }else {
       zmax2 = (1.+zbox[nzbox])*32./27.-1.; /* (1-1/9)/(1-1/4)*/
-      printf("Lya full max redshift: %f\n",zmax2);
+      //      printf("Lya full max redshift: %f\n",zmax2);
       /**** The condition below is a bit strict - maybe we can use a lower zmax2 and still get the integral to converge?? ****/
       if(zmax2>=zbox[nzsfr-1]+global_Dzsim) {
 	printf("Need higher redshift boxes for proper computation - zmax2: %f  zf: %f - setting zmax2 to simulation zf...\n",zmax2,zbox[nzsfr-1]+global_Dzsim);
@@ -177,7 +179,7 @@ int main(int argc, char * argv[]) {
 	if(zrmax>zmax2) zrmax=zmax2;
       }
       zrmax=zrmax/1.001; /* reduce by 0.1% to avoid zrmax in the limit of boxes... */
-      printf("zrmax: %f\n",zrmax);
+      //     printf("zrmax: %f\n",zrmax);
       /*Compute how many box we need to zrmax*/
       /* Note: zrmax for 50 Mpc/h is always less than zmax2 */
       /* !!! This also assumes that zrmax < zbox[nzbox-1] !!! */ 
@@ -195,12 +197,12 @@ int main(int argc, char * argv[]) {
       /***** inhomogeneous computation *****/
       /*************************************/
       /*Loop over the box to compute the contribution to J_alpha*/  
-      printf("Using %d boxes\n",numboxes);fflush(0);
+      //     printf("Using %d boxes\n",numboxes);fflush(0);
       for(box=0;box<numboxes;box++) {
 	
-	printf("Convolving box %d\n",box);fflush(0);
+	//	printf("Convolving box %d\n",box);fflush(0);
 	/*Load the box in memory */
-	sprintf(fname,"%s/SFR/sfrd_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox+box],global_N_smooth,global_L/global_hubble);
+	sprintf(fname,"%s/SFR/sfrd_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox+box],global_N_smooth,global_L/global_hubble);
 	if((file = fopen(fname,"r"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -243,7 +245,7 @@ int main(int argc, char * argv[]) {
       
       Jc=Jc0*(1.+zbox[nzbox]);
 
-      printf("Value of the Constant part %le\n",jalphaconst/Jc);
+      //      printf("Value of the Constant part %le\n",jalphaconst/Jc);
 
       /* Write out the results */    
       /*
@@ -275,7 +277,7 @@ int main(int argc, char * argv[]) {
 	aver1+=Jalpha[i];
       }
       for(i=0;i<global_N3_smooth;i++) sfrt[i]=(float)Jalpha[i];    
-      sprintf(fname,"%s/Lya/xalpha_z%.3lf_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/Lya/xalpha_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
       if((file = fopen(fname,"wb"))==NULL) {
 	printf("Error opening file:%s\n",fname);
 	exit(1);
@@ -480,16 +482,6 @@ double * convertfloat2doublearr(float * arr, long nele) {
 }
 
 
-
-
-/* generic function for number photons/baryon/freq.(Hz) */
-/* Assumes A/nu^0.9 SED with 20000 Lyman photons/baryon */
-/* We can change A and index 0.9 (A is degenerate with SFR efficiency */
-double ebG(double nu) {
-
-  return global_A_Lya*pow(nu,-global_alpha_Lya);
-
-}
 
 /* get r(z) in Mpc/h*/
 double get_int_r(double z) {

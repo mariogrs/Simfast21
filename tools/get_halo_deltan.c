@@ -2,7 +2,7 @@
 /*********************************************************************************************************
 SimFast21
 Auxiliar code - 2014
-Description: Put the halo number fluctuations in a box for a given mass range.
+Description: Put the halo number fluctuations in a box for a given mass range. This is useful for instance to calculate the halo power spectrum and check it has the correct bias.
 *********************************************************************************************************/
 
 /* --------------Includes ----------------------------------------- */

@@ -273,7 +273,7 @@ double getGrowthb(double z){
   int   eSetCosm;          // = 0 if their is an error = 1 if  otherwise
   tf_parms tf;
 
-  /*Inicializacao dos parametros cosmologicos*/ 
+  /* Initialise cosmology */ 
   eSetCosm= Set_Cosmology(global_omega_m, global_omega_b, global_lambda, z, &tf);
     
   return tf.growth_to_z0;
@@ -548,6 +548,8 @@ long int check_borders(long int x, long int N){
 /* ------------------------------------------------------------------------------------------------------------------*/
 /* ------------------------------------------------------------------------------------------------------------------*/
 /* ----------------Functions---------------------------------------*/
+/* Make sure the complex box is symmetrised for being the fourier transform of a real function */
+/* double input */
 void box_symmetriesd(double complex *box, long int N) {
 
   long int i,j,indNi,indNj;
@@ -592,6 +594,8 @@ void box_symmetriesd(double complex *box, long int N) {
 
 /* ------------------------------------------------------------------------------------------------------------------*/
 /* ------------------------------------------------------------------------------------------------------------------*/
+/* Make sure the complex box is symmetrised for being the fourier transform of a real function */
+/* float input */
 void box_symmetriesf(float complex *box, long int N) {
 
   long int i,j,indNi,indNj;
@@ -634,7 +638,7 @@ void box_symmetriesf(float complex *box, long int N) {
 
 
 /* ------------------------------------------------------------------------------------------------------------------*/
-/* -------- averages down the box ------------- */
+/* -------- smooths by averaging ------------- */
 /* ------------------------------------------------------------------------------------------------------------------*/
 void smooth_box(float *box, float *box_smoothed, long int N, long int Ns) {
 

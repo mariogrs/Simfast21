@@ -121,7 +121,7 @@ int main(int argc, char **argv){
     elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);  
     fclose(fid);    
     
-    printf("Adjusting halo positions...\n");fflush(0);
+    //    printf("Adjusting halo positions...\n");fflush(0);
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(nhalos,halo_v,map_veloc_realx,map_veloc_realy,map_veloc_realz,global_N_halo) private(i,indice,x,y,z)
 #endif  

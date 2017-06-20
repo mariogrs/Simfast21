@@ -2,14 +2,19 @@
 cc = gcc
 
 #complilation flags
-fftwf = -lfftw3f -lfftw3f_threads
-fftwd = -lfftw3 -lfftw3_threads
+# if FFTW uses openmp:
+#fftwf = -lfftw3f_omp -lfftw3f
+#fftwd = -lfftw3_omp -lfftw3
+# if FFTW used pthreads:
+fftwf = -lfftw3f_threads -lfftw3f
+fftwd = -lfftw3_threads -lfftw3
 omp = -fopenmp -D_OMPTHREAD_
-gsl = -lgsl -lgslcblas
+# gsl = -lgsl -lgslcblas
+gsl = -lgsl
 deb = -g
 
 #flags = -std=c99 -Wall -O3 -march=native $(fftwd) $(fftwf) $(omp) $(gsl) -lm
-flags = -std=c99 -Wall -O3 $(fftwd) $(fftwf) $(omp) $(gsl) -lm -I .
+flags = -std=c99 -Wall -O3 $(omp) $(fftwd) $(fftwf) $(gsl) -lm -I .
 flags2 = -std=c99 -Wall -O3 -lm -I .
 
 auxo = auxiliary.o Input_variables.o 
@@ -29,11 +34,16 @@ get_HIIbubbles.x: get_HIIbubbles.o user_functions.o $(auxo)
 get_SFR.x: get_SFR.o user_functions.o $(auxo)
 	$(cc) -o get_SFR.x get_SFR.o user_functions.o $(auxo) $(flags)
 
+xalpha.x: xalpha.o user_functions.o $(auxo)
+	$(cc) -o xalpha.x xalpha.o user_functions.o $(auxo) $(flags)
+
 %.x: %.o $(auxo)
 	$(cc) -o $@ $< $(auxo) $(flags)
 
 %.o: %.c $(auxh)
 	${cc} ${flags} -c $< -o $@
+
+.PRECIOUS: %.o
 
 clean:
 	rm *.o *.x tools/*.o tools/*.x

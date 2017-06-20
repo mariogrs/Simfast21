@@ -114,15 +114,15 @@ int main(int argc, char * argv[]) {
   /************** redshift cycle ********************/
   /**************************************************/
   for(z=zmax;z>(zmin-dz/10);z-=dz){    
-    printf("z = %f\n",z);fflush(0);
-    sprintf(fname,"%s/deltaTb/deltaTb_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
+    printf("T21 - z = %f\n",z);fflush(0);
+    sprintf(fname,"%s/deltaTb/deltaTb_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
     if((fid = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping this redshift...\n",fname);
       fclose(fid);
     }else {      
       if(z>(global_Zminsfr-global_Dzsim/10) && global_use_Lya_xrays==1) {
 	Tcmb=Tcmb0*(1.+z);
-	sprintf(fname,"%s/x_c/xc_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
+	sprintf(fname,"%s/x_c/xc_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
 	if((fid = fopen(fname,"rb"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -130,7 +130,7 @@ int main(int argc, char * argv[]) {
 	fread(temp,sizeof(float),global_N3_smooth,fid);
 	fclose(fid);
 	for(i=0;i<global_N3_smooth;i++) t21[i]=(double)temp[i];
-	sprintf(fname,"%s/Lya/xalpha_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
+	sprintf(fname,"%s/Lya/xalpha_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
 	if((fid = fopen(fname,"rb"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -143,7 +143,7 @@ int main(int argc, char * argv[]) {
 	  t21[i]=xtot/(1.+xtot);
 	}
 	
-	sprintf(fname,"%s/xrays/TempX_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
+	sprintf(fname,"%s/xrays/TempX_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
 	if((fid = fopen(fname,"rb"))==NULL) {
 	  printf("Error opening file:%s\n",fname);
 	  exit(1);
@@ -170,7 +170,7 @@ int main(int argc, char * argv[]) {
       /* Executes FFT */
       fftw_execute(pr2c);
       /********************************************************************/
-      printf("Computing v field...\n"); 
+      //     printf("Computing v field...\n"); 
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(dvdk,global_dk) private(i,indi,j,indj,p,kk) 
 #endif
@@ -215,7 +215,7 @@ int main(int argc, char * argv[]) {
 	if(dvdr[i] > maxcut) {dvdr[i]=maxcut; nmaxcut++;}
 	else if(dvdr[i] < mincut) {dvdr[i]=mincut; nmincut++;}
       }
-      printf("nmaxcut: %d (%f %%), nmincut: %d (%f %%)\n\n",nmaxcut,100.*nmaxcut/global_N3_smooth,nmincut,100.*nmincut/global_N3_smooth);fflush(0);
+      //      printf("nmaxcut: %d (%f %%), nmincut: %d (%f %%)\n\n",nmaxcut,100.*nmaxcut/global_N3_smooth,nmincut,100.*nmincut/global_N3_smooth);fflush(0);
      
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(t21,temp,dvdr,global_hubble,global_omega_b,global_omega_m,global_N3_smooth,z) private(i) 
@@ -236,7 +236,7 @@ int main(int argc, char * argv[]) {
 	t21[i]=t21[i]*(1.-(double)temp[i]);  // neutral fraction...
       }
       
-      sprintf(fname,"%s/deltaTb/deltaTb_z%.3lf_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
+      sprintf(fname,"%s/deltaTb/deltaTb_z%.3f_N%ld_L%.1f.dat",argv[1],z,global_N_smooth,global_L/global_hubble);
       if((fid = fopen(fname,"wb"))==NULL) {
 	printf("Cannot open file:%s...\n",fname);
 	exit(1);

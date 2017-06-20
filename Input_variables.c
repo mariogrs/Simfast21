@@ -38,7 +38,7 @@ void get_Simfast21_params(char *basedir){
       n=sscanf(line,"%s %s",first, third);
       if(n!=2 || strlen(first)==0 || strlen(third)==0) {printf("Wrong format! Exiting...\n"); printf("%s\n",line); exit(1);}
 
-      /* Simulation */
+      /***** Simulation parameters *****/
       else if(strcmp(first,"nthreads")==0)global_nthreads=atoi(third);
       else if(strcmp(first,"dz")==0)global_Dzsim=atof(third);
       else if(strcmp(first,"zmax")==0)global_Zmaxsim=atof(third);
@@ -56,7 +56,7 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"N_halo")==0)global_N_halo=atoi(third);
       else if(strcmp(first,"N_smoothed")==0)global_N_smooth=atoi(third);
 
-      /* Cosmology */
+      /***** Cosmological parameters *****/
       if(strcmp(first,"use_camb_matterpower")==0){
 	if(strcmp(third,"T")==0) global_pk_flag=1;    
 	if(strcmp(third,"F")==0) global_pk_flag=0;    
@@ -102,8 +102,6 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"alpha_s")==0) global_alphas=atof(third);
       else if(strcmp(first,"L0")==0) global_L0=atof(third);
       else if(strcmp(first,"flux_Rmax")==0) global_flux_Rmax=atof(third); /* Mpc */
-      else if(strcmp(first,"A_Lya")==0) global_A_Lya=atof(third);
-      else if(strcmp(first,"alpha_Lya")==0) global_alpha_Lya=atof(third);
 
       /* Auxiliary */
       else if(strcmp(first,"Original_nldensity_box")==0){
@@ -275,8 +273,6 @@ void print_parms(void) {
   printf("global_alphas: %f\n",global_alphas);
   printf("global_L0: %E\n",global_L0); 		
   printf("global_flux_Rmax: %f\n",global_flux_Rmax);
-  printf("global_A_Lya: %f\n",global_A_Lya);
-  printf("global_alpha_Lya: %E\n",global_alpha_Lya); 		
   printf("\n");
 
   fflush(0);

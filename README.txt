@@ -35,11 +35,18 @@ base_dir/density     	    - contains the matter density (delta) box for z=0 and 
 	/Output_text_files  - Several text files generated during the simulation (averages, etc)
 
 
-The folder "tools/" contains extra tools that can be used to analyse the output boxes.
+The folder "tools/" contains extra tools that can be used to analyse
+the output boxes.
 
 = Compilation =
 
 Just run make. You might need to edit "makefile" in order to compile in your system.
-It requires the Gnu Scientific Library and the FFTW libraries.
+It requires the Gnu Scientific Library and the FFTW libraries. Make
+sure you compile the FFTW with --enable-threads or --enable-openmp and
+use the appropriate flags in the make file.
+
+See "output_files.txt" and "code_algorithm_diagram.png" for more
+details on the code.
+
 
 

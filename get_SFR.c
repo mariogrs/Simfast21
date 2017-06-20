@@ -2,6 +2,7 @@
 /*********************************************************************************************************
 SimFast21
 Description: Calculates SFR from the non-linear halo field using a fitting function calibrated to simulations
+Output: SFRD (density) boxes in units of Msun/(Mpc/h)^3/year
 *********************************************************************************************************/
 
 /* --------------Includes ----------------------------------------- */
@@ -31,7 +32,7 @@ int main(int argc, char **argv){
   FILE *fid, *fid_sa;
   DIR* dir;
   char fname[300];
-  long int i,j,nz;
+  long int i;
   double sfrd_aver;
   float *sfr_box1, *sfr_box2;
   double zmin,zmax,dz,redshift;
@@ -41,7 +42,7 @@ int main(int argc, char **argv){
 
   
   if(argc !=2) {
-    printf("Generates SFRD using nonlinear halo boxes\n");
+    printf("Generates SFRD using nonlinear halo catalogue.\n");
     printf("usage: get_SFR base_dir\n");
     printf("base_dir contains simfast21.ini\n");
     exit(1);
@@ -91,6 +92,7 @@ int main(int argc, char **argv){
     printf("\nError opening output %s file...\n",fname); 
     exit(1);
   }  
+  fprintf(fid_sa,"# Average SFRD in units of Msun/(Mpc/h)^3/year (columns: redshift   SFRD)\n");
 
   
   /* redshift cycle */
@@ -99,7 +101,7 @@ int main(int argc, char **argv){
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
     elem=fread(&nhalos,sizeof(long int),1,fid);
-    printf("Reading %ld halos...\n",nhalos);fflush(0);
+    printf("Redshift: %f. Reading %ld halos...\n",redshift,nhalos);fflush(0);
     if(!(halo_v=(Halo_t *) malloc(nhalos*sizeof(Halo_t)))) { 
       printf("Problem - halo...\n");
       exit(1);
@@ -113,11 +115,13 @@ int main(int argc, char **argv){
       sfr_box1[i] =0.0;
     }     
     // CIC Rion//
+    /* Distributes the SFR over neighbouring cells */
     for(i=0;i<nhalos;i++){
       CIC(halo_v[i].x, halo_v[i].y, halo_v[i].z, sfr(halo_v[i].Mass, redshift), sfr_box1, global_N_halo); /* SFR in Msun/yr */
     }
     free(halo_v);
     smooth_box(sfr_box1, sfr_box2, global_N_halo, global_N_smooth); /* note: this averages SFR over smoothed cells  - we need to correct for sum... */
+
     /* convert to SFRD in units of Msun/(Mpc/h)^3/year */
     /* also corrects for the fact that previous smooth was an average not a sum */
 #ifdef _OMPTHREAD_
@@ -134,7 +138,6 @@ int main(int argc, char **argv){
     fclose(fid); 
 
   /* average */
-  fprintf(fid_sa,"# Average SFRD in units of Msun/(Mpc/h)^3/year (columns: redshift   SFRD)\n");
   sfrd_aver=0.0;
   for(i=0;i<(global_N3_smooth);i++){
     sfrd_aver+=sfr_box2[i];

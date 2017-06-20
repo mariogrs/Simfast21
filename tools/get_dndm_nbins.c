@@ -36,7 +36,7 @@ int main(int argc, char **argv){
 
   if(argc!=5) {
     printf("\nCalculates the halo dn/dm for a given catalogue.\n");
-    printf("usage: get_dndmb  work_dir   halo_catalog_file  z  nbins\n");
+    printf("usage: get_dndm_nbins  work_dir   halo_catalog_file  z  nbins\n");
     printf("Halo catalog in Simfast21 format. Uses logarithmic binning and same mass bins as the simulation.\n\n");
     exit(1);
   }  
@@ -83,7 +83,7 @@ int main(int argc, char **argv){
     ntot++;
   }
   if(ntot!=nhalos) {
-    printf("Halo numbers don't match!. Exiting...\n");
+    printf("Problem - halo numbers don't match!. Exiting...\n");
     exit(1);
   }
   printf("# Total number of halos in catalogue: %ld, average number of halos per cell: %E\n",ntot, 1.0*ntot/global_N3_halo);

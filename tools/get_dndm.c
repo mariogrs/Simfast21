@@ -36,7 +36,7 @@ int main(int argc, char **argv){
 
   if(argc!=4) {
     printf("\nCalculates the halo dn/dm for a given catalogue.\n");
-    printf("usage: get_dndmb  work_dir   halo_catalog_file  z\n");
+    printf("usage: get_dndm  work_dir   halo_catalog_file  z\n");
     printf("Halo catalog in Simfast21 format. Uses logarithmic binning and same mass bins as the simulation.\n\n");
     exit(1);
   }  
