@@ -30,6 +30,10 @@ void get_Simfast21_params(char *basedir){
     printf("\nThe parameter file simfast21.ini cannot be open. Exit...\n");
     exit(1);
   }
+   /* set some flags in case they're missing... */
+  global_Zminsfr=0;
+  global_use_Lya_xrays=0;
+  global_use_SFR=0;
   global_pk_flag=0;
   while(fgets(line,length,paramfile)!=NULL){
     if(line[0]!='#' && line[0]!='\n'){
@@ -139,6 +143,8 @@ void get_Simfast21_params(char *basedir){
   global_Zminsim=global_Zmaxsim-global_Dzsim*(double)ceil((global_Zmaxsim-global_Zminsim)/global_Dzsim); /* Make sure we include files for global_Zminsim */
   global_Zminsfr=global_Zmaxsim-global_Dzsim*(double)ceil((global_Zmaxsim-global_Zminsfr)/global_Dzsim);
 
+  if(global_Zminsfr < global_Zminsim) global_Zminsfr = global_Zminsim;  /* make sure the SFR redshifts are consistent with the simulation */
+  
   //  print_parms();
 
   fclose(paramfile);
