@@ -9,13 +9,11 @@ cc = gcc
 fftwf = -lfftw3f_threads -lfftw3f
 fftwd = -lfftw3_threads -lfftw3
 omp = -fopenmp -D_OMPTHREAD_
-# gsl = -lgsl -lgslcblas
-gsl = -lgsl
+gsl = -lgsl -lgslcblas -lm
 deb = -g
 
 #flags = -std=c99 -Wall -O3 -march=native $(fftwd) $(fftwf) $(omp) $(gsl) -lm
-flags = -std=c99 -Wall -O3 $(omp) $(fftwd) $(fftwf) $(gsl) -lm -I .
-flags2 = -std=c99 -Wall -O3 -lm -I .
+flags = -std=c99 -Wall -O3 $(omp) $(fftwd) $(fftwf) $(gsl) -I .
 
 auxo = auxiliary.o Input_variables.o 
 auxh = auxiliary.h Input_variables.h 
