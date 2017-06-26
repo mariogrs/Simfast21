@@ -3,7 +3,8 @@
 SimFast21
 Name: get_velocityfield                                                       
 Calculates the velocity field from the linear density one
-Outputs velocity in Mpc (growth rate missing)
+Outputs comoving velocity in Mpc (growth rate missing)
+To get linear comoving peculiar velocity at a given z, just multiply by growth rate. You can use dgrowthdt(z) in auxiliary.c. The units will then be comoving Mpc/seconds.
 *******************************************************************************/
 
 /* --------------Includes ----------------------------------------- */
