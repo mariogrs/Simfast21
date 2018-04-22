@@ -66,7 +66,7 @@ int main(int argc, char * argv[]) {
     tau+=(1.+z)*(1.+z)*drdz(z);
   }
   tau=tau*dz*ne0*sigt*Mpc2m/global_hubble*100.;
-  printf("Full ionization part: %E\n",tau);
+  printf("Contribution after universe is fully ionised: %E\n",tau);
   ddz=(zv[0]-zv[nz-1])/(nz-1);
   tau2=0.;
   while(z<=zv[0]) {
@@ -77,7 +77,7 @@ int main(int argc, char * argv[]) {
     z+=dz;
   }
   tau2=tau2*dz*ne0*sigt*Mpc2m/global_hubble*100.;
-  printf("xHII ionization part: %E\n",tau2);
+  printf("Contribution from the EoR: %E\n",tau2);
   printf("Total: %E\n",tau+tau2);
   
   exit(0);

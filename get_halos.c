@@ -48,7 +48,7 @@ int main(int argc, char **argv){
   double redshift;
   long int i,j,p,ii,jj,pp,indi,indj;
   long int a,b,c;
-  int flag;
+  int flag, neg, zer;
   long int ncells1D;
   long int ind;
   long int index, indice;
@@ -194,7 +194,7 @@ int main(int argc, char **argv){
   printf("Redshift cycle...\n");fflush(0);
   for(redshift=zmax;redshift>(zmin-dz/10);redshift-=dz){
     
-    printf("\n\n\n +++++++++++++++++++++++++++ z = %f +++++++++++++++++++++++++++++++\n",redshift);fflush(0);
+    printf("\n+++++++++++++++++++++++++++ z = %f +++++++++++++++++++++++++++++++\n",redshift);fflush(0);
     sprintf(halo_filename, "%s/Halos/halo_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,(global_L/global_hubble));
     fid_out=fopen(halo_filename,"rb");
     if(fid_out!=NULL) {
@@ -322,29 +322,36 @@ int main(int argc, char **argv){
 	R=R/rhalo; /* reduces halo size for next cycle */
 	halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
       } /* R cycle for excursion set */
-      printf("--------------- Number of halos without subgrid: %ld -----------------------\n\n",nhalos_z);fflush(0);  
+      printf("\n--------------- Number of halos without subgrid: %ld -----------------------\n\n",nhalos_z);fflush(0);  
 
     
     /*** subgrid cycle for same z ***/
     /************************************************/
     /************************************************/
     if(global_use_sgrid==1){
+      neg=0;
+      zer=0;
       while (halo_mass >= global_halo_Mmin) {
-	//	printf("\n\n----------------------------------------- subgrid halo mass=%E -----------------------------------\n", halo_mass); fflush(0);
+	//	printf("\n----------------------------------------- subgrid halo mass=%E -----------------------------------\n", halo_mass); fflush(0);
 	mass_aux=(4.0/3.0)*PI*global_rho_m*pow(R,3);
 	nhalos_R=0;
 	dm=(4.0/3.0)*PI*global_rho_m*(pow(R,3)-pow(R/rhalo,3));  /* mass interval */
+	printf("\nSubgrid cycle: %f %f %f\n", R, halo_mass, dm);
 	sigma_aux = sigma(R);   
 	dndm_av = mass_function_ST(redshift, mass_aux)*dm*pow(global_dx_halo,3);  /* mass_function_ST in 1/Msun/(Mpc/h)^3 - comoving volume */
 	hbias = Bias(redshift, sigma_aux);
+	
 	for (i = 0; i < global_N_halo; i++) {
 	  for (j = 0; j < global_N_halo; j++) {
 	    nhalos_cat=0;
 	    for (p = 0; p < global_N_halo; p++) {
-	      index = i * global_N_halo * global_N_halo + j * global_N_halo + p;                      
+	      index = i * global_N_halo * global_N_halo + j * global_N_halo + p;
+
+	      if(flag_halo[index]!=0)  zer++;
 	      tempv=map_in_f[index]*growth*hbias;
 	      Pnhalos = gsl_ran_poisson(rpoisson,dndm_av); /* number of halos for a given mass given by Poisson distribution */
 	      nn=(int)round(Pnhalos*(1.0+tempv));
+	      if (tempv < -1) neg++;
 	      for (ii = 0; ii < nn; ii++) {
 		halo_cat[nhalos_cat].x=i;
 		halo_cat[nhalos_cat].y=j;
@@ -358,10 +365,13 @@ int main(int argc, char **argv){
 	    if(nhalos_cat>0) elem=fwrite(halo_cat, sizeof(Halo_t), nhalos_cat, fid_out);
 	  }
 	}
+
+	
 	R = R/rhalo; 
 	halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
 	// printf("Number of halos for M=%E: %ld\n",halo_mass, nhalos_R);fflush(0);	
-      }        
+      }
+      printf("Negative values: %d, non zeros: %d\n", neg, zer);
       printf("----------------------------- Total number of halos including subgrid: %ld ---------------------- \n\n", nhalos_z);   fflush(0);
     } /* subgrid cycle ends */
     rewind(fid_out);

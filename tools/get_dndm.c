@@ -2,9 +2,9 @@
 /*********************************************************************************************************
 SimFast21
 Auxiliar code - 2014
-Description: Calculates halo dn/dm for a given halo catalogue. Uses same bins and mass range as simulation.
+Description: Calculates halo dn/dm for a given halo catalogue. 
 Uses logarithmic binning and same mass bins as the simulation.
-Also calculates theoretical mass function
+Also calculates theoretical mass function.
 *********************************************************************************************************/
 
 /* --------------Includes ----------------------------------------- */
@@ -90,7 +90,7 @@ int main(int argc, char **argv){
   printf("# Total number of halos in catalogue: %ld, average number of halos per cell: %E\n",ntot, 1.0*ntot/global_N3_halo);
   printf("# Number density: %E (h/Mpc)^3, dn/dm for total mass range: %E (h/Mpc)^3/Msun\n",1.0*ntot/global_L3,1.0*ntot/global_L3/(Mmax-Mmin));
   printf("\n# Mass [Msun]    dndm [(h/Mpc)^3/Msun]\n");
-  printf("\n#  Mass_1         Mass_2         Mass_3      dndm_sim       dndm_calc\n");
+  printf("\n#  bin_min_Mass       bin_max_Mass        Mass_mid      Mass_av    dndm_sim       dndm_calc\n");
   for(i=0;i<N;i++) {
     m1=Mmin*pow(10,i*dlm);
     m2=Mmin*pow(10,(i+1)*dlm);
@@ -102,7 +102,7 @@ int main(int argc, char **argv){
       dndma+=mass_function_ST(z,mass)*mass;  /* mass_function_ST in 1/Msun/(Mpc/h)^3 - comoving volume (times mass because of log integration) */
     }
     dndma=dndma*dmi;
-    printf("%E   %E   %E   %E  %E\n",m1, m2, m3, dndm[i]/global_L3/(m2-m1),dndma/(m2-m1));
+    printf("%E   %E   %E  %E   %E  %E\n",m1, m2, m3, (m1+m2)/2.0, dndm[i]/global_L3/(m2-m1),dndma/(m2-m1));
   }
   printf("\n");
   

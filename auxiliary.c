@@ -322,7 +322,7 @@ double powerFunction(double k, tf_parms *tf){
   //k in units of hMpc-1 
   tfk = Transfer_Functionh(k,tf);
   power = (*tf).growth_to_z0*(*tf).growth_to_z0*(pow((1/k),3)*2*pow(PI*deltaH,2)*pow((k*global_hubble),global_n_index+3)*pow(tfk,2));
-  //power in units of de (Mpc/h)^3
+  //power in units of  (Mpc/h)^3
   
   return power;
 }
