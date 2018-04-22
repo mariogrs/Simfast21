@@ -21,7 +21,7 @@ Sultan Hassan
 = Description =
 
 This program generates a simulation of the cosmological 21cm signal during the epoch of reionization.
-To run just do: "./simfast21 base_dir" where "base_dir" is the base directory where you want your simulation to reside (note that the files can be quite big). This base directory must contain the parameters file simfast21.ini (see the copy that comes with the distribution for further details on how to use this file).
+To run just do: "./simfast21.x base_dir" where "base_dir" is the base directory where you want your simulation to reside (note that the files can be quite big). This base directory must contain the parameters file simfast21.ini (see the copy that comes with the distribution for further details on how to use this file).
 The program will create the following directory structure:
 base_dir/density     	    - contains the matter density (delta) box for z=0 and nonlinear boxes for all redshifts
         /Velocity    	    - Velocity at z=0
