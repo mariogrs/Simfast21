@@ -42,7 +42,7 @@ int main(int argc, char * argv[]) {
   /* Check for correct number of parameters*/
   if(argc != 4) {
     printf("Usage : vel_grad base_dir z axis\nbase_dir: directory where Simfast21 simulation is.\nz: redshift where to calculate the velocities.\naxis: direction along which to calculate the gradient (1- X; 2-Y; 3-Z) - Z is fastest moving index in boxes.\n");
-    printf("Outputs:\n  v/c (unitless - proper peculiar velocity/speed of light\n)  (dv/ds)/H (unitless - proper gradient of the proper peculiar velocity along the given direction, divided by H(z))\n");
+    printf("Outputs:\n  v/c (unitless - proper peculiar velocity/speed of light)\n  (dv/ds)/H (unitless - proper gradient of the proper peculiar velocity along the given direction, divided by H(z))\n");
     exit(1);
   }
   get_Simfast21_params(argv[1]);

@@ -1,9 +1,9 @@
 
-Descritpion of the simulation output files (in the order they are produced). All files are binary (float) unless otherwise stated.
+Description of the simulation output files (in the order they are produced). All files are binary (float) unless otherwise stated.
 
 
 - delta/delta_z0_N%ld%_L%k%.dat
-Box with delta at z=0 (not the density but the fluctutation: density/average-1), box size in Mpc
+Box with delta at z=0 (not the density but the fluctuation: density/average-1), box size in Mpc
 %ld% = number of cells along one side of the unsmoothed boxes (global_N_halo)
 %k% = length of the box in Mpc to 1 decimal case
 
