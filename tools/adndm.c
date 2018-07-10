@@ -22,7 +22,7 @@ int main(int argc, char **argv){
 
   if(argc!=6) {
     printf("\nCalculates the analytical dn/dm (halo mass function) for a given redshift and mass interval..\n");
-    printf("usage: adndm   work_dir   z   Mmin   Mmax  N_bins\n");
+    printf("usage: adndm   Simfast21_dir   z   Mmin   Mmax  N_bins\n");
     printf("Mmin and Mmax in Msun units. Uses logarithmic binning\n\n");
     exit(1);
   }  

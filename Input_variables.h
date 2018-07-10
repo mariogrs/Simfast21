@@ -57,10 +57,9 @@ double global_delta_c;
 double global_STa;
 double global_STb;
 double global_STc;
-double global_halo_Rmax;
-double global_halo_Rmin_dx;
 double global_halo_Mmin;
-int global_Nhbins;
+double global_halo_Rmax;
+double global_halo_dlm;
 
 
 

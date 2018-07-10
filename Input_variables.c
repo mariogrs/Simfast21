@@ -51,9 +51,9 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"seed")==0){
 	global_seed=atoi(third);
 	if(global_seed < 1) {
-	  printf("seed < 1 - no good: using time()\n");
+	  printf("# seed < 1 - no good: using time()\n");
 	  global_seed=(long int)time(NULL);
-	  printf("Using seed: %lu\n",global_seed);
+	  printf("# Using seed: %lu\n",global_seed);
 	} 
       }     
       else if(strcmp(first,"Vel_comp")==0)global_vi=atoi(third);
@@ -81,10 +81,8 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"Use_subgrid")==0){
 	if(strcmp(third,"T")==0) global_use_sgrid=1; else global_use_sgrid=0;
       }    
-      else if(strcmp(first,"halo_Rmax")==0)global_halo_Rmax=atof(third);
-      else if(strcmp(first,"halo_Rmin_dx")==0)global_halo_Rmin_dx=atof(third);
       else if(strcmp(first,"halo_Mmin")==0)global_halo_Mmin=atof(third);
-      else if(strcmp(first,"halo_Nbins")==0)global_Nhbins=atoi(third);
+      else if(strcmp(first,"halo_dlm")==0)global_halo_dlm=atof(third);
 
       /* Ionization */
       else if(strcmp(first,"fesc")==0)global_fesc=atof(third);
@@ -116,20 +114,19 @@ void get_Simfast21_params(char *basedir){
     }   
   }
   if(global_pk_flag==1) {
-    printf("Using CAMB file for cosmology.\n");
+    printf("# Using CAMB file for cosmology.\n");
     if(global_camb_file[0]==0) {
       printf("No CAMB file. Exiting...\n");
       exit(1);
     }
     sprintf(fname, "%s/%s",basedir,global_camb_file);
-    printf("Using cosmology from CAMB file: %s\n",fname);
+    printf("# Using cosmology from CAMB file: %s\n",fname);
     set_cosmology_fromCAMB(fname);
   } else global_pk_flag=0;
   global_rho_m=global_omega_m*RHO_0/global_hubble;  /* units of M_sun/(Mpc/h)**3 */
   global_rho_b=global_omega_b*RHO_0/global_hubble;
   global_L=global_L*global_hubble;  /* Mpc/h */
-  global_halo_Rmax=global_halo_Rmax*global_hubble;  /* Mpc/h */
-  if(global_halo_Rmax>global_L/2.0) global_halo_Rmax=global_L/2.0;
+  global_halo_Rmax=global_L/2.0;
   global_bubble_Rmax=global_bubble_Rmax*global_hubble;  /* Mpc/h */
   if(global_bubble_Rmax > global_L/2.) global_bubble_Rmax=global_L/2.; /* make sure maximum bubble radius is half the box size, e.g. one bubble over the all box... */
   global_flux_Rmax=global_flux_Rmax*global_hubble;  /* Mpc/h */
@@ -244,14 +241,12 @@ void print_parms(void) {
   printf("global_rho_b: %E\n",global_rho_b);
 
   /*------------------------Halo collapse parameters-----------------------------*/
-  printf("global_halo_Nbins: %d\n",global_Nhbins);
+  printf("global_halo_dlm: %f\n",global_halo_dlm);
   printf("global_use_sgrid: %d\n",global_use_sgrid);
   printf("global_delta_c: %f\n",global_delta_c);
   printf("global_STa: %f\n",global_STa);
   printf("global_STb: %f\n",global_STb);
   printf("global_STc: %f\n",global_STc);
-  printf("global_halo_Rmax: %f Mpc/h\n",global_halo_Rmax);
-  printf("global_halo_Rmin_dx: %f (in cell units)\n",global_halo_Rmin_dx);
   printf("global_halo_Mmin: %E Msun\n",global_halo_Mmin);
 
 

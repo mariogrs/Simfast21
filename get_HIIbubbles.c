@@ -100,93 +100,93 @@ int main(int argc, char *argv[]) {
 
   /* density_map mass */
   if(!(density_map=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem1...\n");
+    printf("Memory Problem1...\n");
     exit(1);
   }
   if(!(density_map_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem2...\n");
+    printf("Memory Problem2...\n");
     exit(1);
   }
   if(!(pr2c1=fftwf_plan_dft_r2c_3d(global_N_smooth, global_N_smooth, global_N_smooth, density_map, density_map_c, FFTWflag))) {
-    printf("Problem3...\n");
+    printf("Memory Problem3...\n");
     exit(1);
   }  
   /* halo_map mass */ 
   if(!(halo_map1=(float *) fftwf_malloc(global_N3_halo*sizeof(float)))) {
-    printf("Problem4...\n");
+    printf("Memory Problem4...\n");
     exit(1);
   }
 
   if(!(halo_map=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem4...\n");
+    printf("Memory Problem5...\n");
     exit(1);
   }
   if(!(halo_map_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem5...\n");
+    printf("Memory Problem6...\n");
     exit(1);
   }
   if(!(pr2c2=fftwf_plan_dft_r2c_3d(global_N_smooth, global_N_smooth, global_N_smooth, halo_map, halo_map_c, FFTWflag))) {
-    printf("Problem6...\n");
+    printf("FFTW Problem1...\n");
     exit(1);
   }
   /* total mass */
   if(!(total_mass_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem7...\n");
+    printf("Memory Problem7...\n");
     exit(1);
   }
   if(!(pc2r1=fftwf_plan_dft_c2r_3d(global_N_smooth, global_N_smooth, global_N_smooth, total_mass_c, density_map, FFTWflag))) {
-    printf("Problem8...\n");
+    printf("FFTW Problem2...\n");
     exit(1);
   }
   /* collapsed mass */
   if(!(collapsed_mass_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem9...\n");
+    printf("Memory Problem8...\n");
     exit(1);
   }
   if(!(pc2r2=fftwf_plan_dft_c2r_3d(global_N_smooth, global_N_smooth, global_N_smooth, collapsed_mass_c, halo_map, FFTWflag))) {
-    printf("Problem10...\n");
+    printf("FFTW Problem3...\n");
     exit(1);
   }
   /* top hat window */
   if(!(top_hat_r=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem11...\n");
+    printf("Memory Problem9...\n");
     exit(1);
   }
   if(!(top_hat_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem12...\n");
+    printf("Memory Problem10...\n");
     exit(1);
   }
   if(!(pr2c3=fftwf_plan_dft_r2c_3d(global_N_smooth, global_N_smooth, global_N_smooth, top_hat_r, top_hat_c, FFTWflag))) {
-    printf("Problem13...\n");
+    printf("FFTW Problem4...\n");
     exit(1);
   }
   /* bubble boxes */
   if(!(bubble=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem14...\n");
+    printf("Memory Problem11...\n");
     exit(1);
   }
   if(!(bubble_c=(fftwf_complex *) fftwf_malloc(global_N_smooth*global_N_smooth*(global_N_smooth/2+1)*sizeof(fftwf_complex)))) {
-    printf("Problem15...\n");
+    printf("Memory Problem12...\n");
     exit(1);
   }
   if(!(bubblef=(float *) malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem16...\n");
+    printf("Memory Problem13...\n");
     exit(1);
   }
   if(!(pr2c4=fftwf_plan_dft_r2c_3d(global_N_smooth, global_N_smooth, global_N_smooth, bubble, bubble_c, FFTWflag))) {
-    printf("Problem17...\n");
+    printf("FFTW Problem5...\n");
     exit(1);
   }
   if(!(pc2r3=fftwf_plan_dft_c2r_3d(global_N_smooth, global_N_smooth, global_N_smooth, bubble_c, bubble, FFTWflag))) {
-    printf("Problem18...\n");
+    printf("FFTW Problem6...\n");
     exit(1);
   }
   if(!(xHI=(double *) malloc((int)((zmax-zmin)/dz+2)*sizeof(double)))) {
-    printf("Problem19...\n");
+    printf("Memory Problem14...\n");
     exit(1);
   }
   if(!(fresid=(float *) fftwf_malloc(global_N3_smooth*sizeof(float)))) {
-    printf("Problem20...\n");
+    printf("Memory Problem15...\n");
     exit(1);
   }
   bfactor=pow(10.0,log10(global_bubble_Rmax/global_dx_smooth)/global_bubble_Nbins);
@@ -239,7 +239,7 @@ int main(int argc, char *argv[]) {
       elem=fread(&nhalos,sizeof(long int),1,fid);
       printf("Reading %ld halos...\n",nhalos);fflush(0);
       if(!(halo_v=(Halo_t *) malloc(nhalos*sizeof(Halo_t)))) { 
-	printf("Problem - halo...\n");
+	printf("Memory Problem - halo...\n");
 	exit(1);
       }
       elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);
@@ -296,7 +296,7 @@ int main(int argc, char *argv[]) {
     /****************************************************/
     /************** going over the bubble sizes for each z ****************/
     R=global_bubble_Rmax;    /* Maximum bubble size...*/
-    while(R>=2*global_dx_smooth){ /* only tries to fund bubbles using this method down to a certain minimum size because of resolution effects */
+    while(R>=2*global_dx_smooth){ /* only tries to find bubbles using this method down to a certain minimum size because of resolution effects */
     
       //      printf("bubble radius R= %lf\n", R);fflush(0);    
       //      printf("Filtering halo and density boxes...\n");fflush(0);

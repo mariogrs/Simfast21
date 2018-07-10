@@ -29,9 +29,11 @@ double ebG(double nu);
 /* units of s^-1 */
 /***************   Rion *************/
 /* ionisation rate */
-#define c1      7.25511524e+39
+//#define c1      7.25511524e+39
+#define c1      4.2e39
 #define c2      9.367608e+07
-#define c3      4.09039945e-01
+//#define c3      4.09039945e-01
+#define c3      0.44
 #define c4      2.27044695e+00
 #define V_norm  1.e+45
 

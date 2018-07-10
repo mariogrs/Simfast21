@@ -32,12 +32,12 @@ Main issue: excursion set assumes spherical halos - the approach breaks down whe
 
 int main(int argc, char **argv){
 
-  
-  double dm, mass_aux, dndm_av, hbias, tempv;
-  double rhalo;
-  long int nhalos_z, nhalos_R;
+  double dndm_av, hbias, tempv, mass_dx;
+  long int nhalos_z;  /* number of halos for a box z */
+  long int nhalos_R; /* number of halos for radius R */
   double Pnhalos;
-  int nhalos_cat, nn;
+  int nhalos_cat;  /* number of halos to be written to catalog for a given slice */
+  int nn;
   fftwf_plan pc2r;
   fftwf_plan pr2c;
   fftwf_complex *map_in;
@@ -56,7 +56,6 @@ int main(int argc, char **argv){
   char  *flag_halo;
   double deltaCMZ;
   double halo_mass;
-  double R_lim;
   Halo_t *halo_cat;
   float *map_in_f, *mass;
   double sigma_aux;
@@ -91,35 +90,6 @@ int main(int argc, char **argv){
   printf("Using %d threads\n",global_nthreads);fflush(0);
 #endif
 
-  /* global_halo_Rmin_dx sets the minimum radius below which we don't use FFT convolutions to get the halos. 
-     It is given in units of dx where dx is the cell width */
-  if(global_halo_Rmin_dx < 2) {
-    printf("Warning: \"halo_Rmin_dx\" is quite small - this might have resolution effects on the standard halo finding excursion set formalism\n");
-    R_lim=1.0*global_dx_halo;
-    //    R_lim=0.620350491*global_dx_halo;
-  }else {
-    R_lim=global_halo_Rmin_dx*global_dx_halo;
-  }
-  halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3); /* halo mass for Rmin */
-  printf("Minimum mass for standard halo finding method (excursion set formalism using FFTs): %E\n",halo_mass);
-  if(global_use_sgrid==1){ /* check if subgrid is being requested */
-    if(halo_mass <= global_halo_Mmin+10.) {
-      printf("No need to do subgridding: resolution is enough for %E mass halos\n",global_halo_Mmin);
-      global_use_sgrid=0;
-      R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
-    }
-  }else {
-    if(halo_mass > global_halo_Mmin) {
-      printf("Warning - minimum mass for box resolution is larger than halo_Mmin: you need to use subgrid to achieve that minimum mass.\n");
-    } else R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
-  }
-  if(global_use_sgrid==1)
-    R=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
-  else
-    R=R_lim;
-  rhalo=exp(log(global_halo_Rmax/R)/global_Nhbins); /* calculate the ratio of halo radius */
-  printf("Debugging: %f  %f  %f  %f  %f  %d\n",global_halo_Rmax, global_L,R, R_lim, rhalo, global_Nhbins); fflush(0);
-
   /* Memory allocations */
   if(!(halo_cat=(Halo_t *) fftwf_malloc(global_N_halo*global_N_halo*sizeof(Halo_t)))) {    /* get memory for float map */
     printf("Memory problem: halo_cat\n");
@@ -149,7 +119,7 @@ int main(int argc, char **argv){
   sprintf(dens_filename, "%s/delta/delta_z0_N%ld_L%.1f.dat", argv[1],global_N_halo, global_L/global_hubble);  
   fid_in=fopen(dens_filename,"rb");	/* second argument contains name of input file */
   if (fid_in==NULL) {
-    printf("Error reading density file %s - check if the file exists...\n",dens_filename); 
+    printf("Error reading delta density file %s - check if the file exists...\n",dens_filename); 
     exit (1);
   }  
   elem=fread(map_in_f,sizeof(float),global_N3_halo,fid_in);    
@@ -168,7 +138,6 @@ int main(int argc, char **argv){
     printf("Memory problem - halo_ind...\n");
     exit(1);
   }
-  
   //  printf("smooth_f: %ld\n",smooth_factor);  
   //  printf("Preparing FFT from filtered k-space to real space...\n");fflush(0);
   if(!(pc2r=fftwf_plan_dft_c2r_3d(global_N_halo, global_N_halo, global_N_halo,(fftwf_complex *) map_in_aux,(float *)map_in_aux , FFTW_MEASURE ))) { 
@@ -186,8 +155,13 @@ int main(int argc, char **argv){
   }  
 
 
+  mass_dx=global_rho_m*pow(global_dx_halo,3)*pow(10.0,global_halo_dlm); /* sets minimum halo mass for standard cycle (adds "a bit" to dx) */
+  printf("Mininum halo mass for excursion set formalism: %E\n",mass_dx);fflush(0);
+  if(mass_dx > global_halo_Mmin && global_use_sgrid==0)
+    printf("Warning - minimum mass for box resolution is larger than halo_Mmin: you need to use subgrid to achieve that minimum mass.\n");
 
-
+  
+  
   /****************************************************/
   /****************************************************/
   /********  Redshift cycle ********/
@@ -214,24 +188,22 @@ int main(int argc, char **argv){
       nhalos_z=0;  /* counts total halos for one box */
       elem=fwrite(&nhalos_z,sizeof(long int),1,fid_out); /* reserve space for number of halos at beginning of file */    
       R=global_halo_Rmax;
-      halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
+      halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R,3);  /* starting mass */
  
 
       /**************** start halo cycle for one box ****************/
-      while(R>=R_lim && halo_mass>=global_halo_Mmin){   
+      while(halo_mass>mass_dx && halo_mass>=global_halo_Mmin){   
 
-	//      printf("\n\n----------------------------------------- R=%f  M=%E ----------------------------------------\n",R,halo_mass);fflush(0);
-	R2=R*R;   
-	sigma_aux=sigma(R);
-	deltaCMZ=growth*deltaFilter(sigma_aux,growth);
-	if ((sigma_aux*growth*6) < deltaCMZ){    /* just in case probability is very low */
-	  // printf("sigma(R=%f) << delta_c=%f, skipping \n",R,deltaCMZ);      
-	} else {
+	dndm_av=mass_function_ST(redshift, halo_mass)*halo_mass*(pow(10.0,global_halo_dlm)-1)*global_L3;  /* this is the expected average number of halos in the box within the target mass bin */
+//	printf("dndm_av: %E\n",dndm_av);
+	if(dndm_av >-log(1-0.1)) {  /* if there is more than a 10% (0.1) Poisson probability of finding a halo of this mass, go on... */
+	  R2=R*R;   
+	  sigma_aux=sigma(R);
+	  deltaCMZ=growth*deltaFilter(sigma_aux,growth);
 
 	  
 	  /*************************************************/	
 	  /*cycle to find halos for a given mass/radius start */
-
 	  /* evolves density field, FFT and multiplies by window function */
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(map_in_aux,map_in,global_N_halo,global_dx_halo,R) private(i,j,p,indi,indj,kk)
@@ -248,7 +220,7 @@ int main(int argc, char **argv){
 		/* 3d vector k (frequency) is just (indi, indj, p)*global_dk (global_dk is the moduli of the unit vector) */
 		kk=global_dk*sqrt(indi*indi+indj*indj+p*p); 
 		//map_in_aux[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]=map_in[i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p]*W_filter(kk*R)*dx*dx*dx;
-		*((fftwf_complex *)map_in_aux + (i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p))= *((fftwf_complex *)map_in + (i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p))*W_filter(kk*R)*global_dx_halo*global_dx_halo*global_dx_halo/global_L3*growth;  /* take care of all norms now */	      
+		*((fftwf_complex *)map_in_aux + (i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p))= *((fftwf_complex *)map_in + (i*global_N_halo*(global_N_halo/2+1)+j*(global_N_halo/2+1)+p))*W_filter(kk*R)*global_dx_halo*global_dx_halo*global_dx_halo/global_L3*growth;  /* This is the smoothed delta on a scale R.  Take care of all norms now */	      
 	      }
 	    }
 	  }	
@@ -267,7 +239,7 @@ int main(int argc, char **argv){
 	    nhalos_cat=0; /* counts number of halos written to catalogue - write catalogue to disk for each box slice instead of full box to avoid memory problems */
 	    for(j=0;j<global_N_halo;j++){    
 	      for(p=0;p<global_N_halo;p++){
-		index=i*2*global_N_halo*(global_N_halo/2+1)+j*2*(global_N_halo/2+1)+p;  	  
+		index=i*2*global_N_halo*(global_N_halo/2+1)+j*2*(global_N_halo/2+1)+p;  /* note the inline padding... */
 		if(*((float *)map_in_aux + index)>deltaCMZ){  /* found a halo... */
 		  flag=0;
 		  ind=0;
@@ -306,80 +278,110 @@ int main(int argc, char **argv){
 		    //		  halo_cat[nhalos_cat].Mass=halo_mass*(1+*((float *)map_in_aux + index)); /* mass in Msun - New correction: take into account the overdensity to get the halo mass*/
 		    nhalos_cat++;
 		  }	    
-		}	
+		} /* cycle that finds halos */	
 	      }
 	    }
 	    if(nhalos_cat>0) elem=fwrite(halo_cat,sizeof(Halo_t),nhalos_cat,fid_out);
 	  } /* matches cycle over i */  
-	  //	printf("Number of halos for M=%E: %ld\n",halo_mass, nhalos_R);fflush(0);
+	  printf("Number of halos for M=%E: %ld\n",halo_mass, nhalos_R);fflush(0);
 	  /* cycle end: go over box and find halos - checks for overlap */
 	  /************************************************/
-
 	/* cycle to detect halos for a given mass/radius terminates */
 	/*************************************************/	
 
-	} /* matches else for when sigma is low */
-	R=R/rhalo; /* reduces halo size for next cycle */
-	halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
-      } /* R cycle for excursion set */
+	} /* matches if to check if there is a low probability */
+	halo_mass=halo_mass/pow(10.0,global_halo_dlm);  /* next mass value */
+	R=pow(3/4.0/PI/global_rho_m*halo_mass,1.0/3);
+      } /* mass cycle for excursion set ends */
       printf("\n--------------- Number of halos without subgrid: %ld -----------------------\n\n",nhalos_z);fflush(0);  
 
-    
-    /*** subgrid cycle for same z ***/
-    /************************************************/
-    /************************************************/
-    if(global_use_sgrid==1){
-      neg=0;
-      zer=0;
-      while (halo_mass >= global_halo_Mmin) {
-	//	printf("\n----------------------------------------- subgrid halo mass=%E -----------------------------------\n", halo_mass); fflush(0);
-	mass_aux=(4.0/3.0)*PI*global_rho_m*pow(R,3);
-	nhalos_R=0;
-	dm=(4.0/3.0)*PI*global_rho_m*(pow(R,3)-pow(R/rhalo,3));  /* mass interval */
-	printf("\nSubgrid cycle: %f %f %f\n", R, halo_mass, dm);
-	sigma_aux = sigma(R);   
-	dndm_av = mass_function_ST(redshift, mass_aux)*dm*pow(global_dx_halo,3);  /* mass_function_ST in 1/Msun/(Mpc/h)^3 - comoving volume */
-	hbias = Bias(redshift, sigma_aux);
-	
+      
+      /*******************************************/
+      /* start cycle to check halos with cell size */
+      halo_mass=global_rho_m*pow(global_dx_halo,3);
+      nhalos_R=0;
+      if(halo_mass >= global_halo_Mmin) {	
+	R=pow(3/4.0/PI/global_rho_m*halo_mass,1.0/3);
+	sigma_aux=sigma(R);
+	deltaCMZ=growth*deltaFilter(sigma_aux,growth);
 	for (i = 0; i < global_N_halo; i++) {
 	  for (j = 0; j < global_N_halo; j++) {
 	    nhalos_cat=0;
 	    for (p = 0; p < global_N_halo; p++) {
 	      index = i * global_N_halo * global_N_halo + j * global_N_halo + p;
-
-	      if(flag_halo[index]!=0)  zer++;
-	      tempv=map_in_f[index]*growth*hbias;
-	      Pnhalos = gsl_ran_poisson(rpoisson,dndm_av); /* number of halos for a given mass given by Poisson distribution */
-	      nn=(int)round(Pnhalos*(1.0+tempv));
-	      if (tempv < -1) neg++;
-	      for (ii = 0; ii < nn; ii++) {
-		halo_cat[nhalos_cat].x=i;
-		halo_cat[nhalos_cat].y=j;
-		halo_cat[nhalos_cat].z=p;
-		halo_cat[nhalos_cat].Mass=halo_mass;
-		nhalos_R++;
-		nhalos_cat++;
-		nhalos_z++;
+	      if(flag_halo[index]==0) {
+		if(map_in_f[index]*growth>deltaCMZ) {
+		  flag_halo[index]=1;
+		  halo_cat[nhalos_cat].x=i;
+		  halo_cat[nhalos_cat].y=j;
+		  halo_cat[nhalos_cat].z=p;
+		  halo_cat[nhalos_cat].Mass=halo_mass;
+		  nhalos_R++;
+		  nhalos_cat++;
+		  nhalos_z++;
+		}
 	      }
 	    }
 	    if(nhalos_cat>0) elem=fwrite(halo_cat, sizeof(Halo_t), nhalos_cat, fid_out);
 	  }
 	}
-
-	
-	R = R/rhalo; 
-	halo_mass=(4.0/3.0)*PI*global_rho_m*(pow(R,3)+pow(R/rhalo,3))/2.0;  /* This is a new change - it seems this mass fits theory better... */
-	// printf("Number of halos for M=%E: %ld\n",halo_mass, nhalos_R);fflush(0);	
+	printf("Number of halos found in cell size cycle: %ld\n",nhalos_R);
       }
-      printf("Negative values: %d, non zeros: %d\n", neg, zer);
-      printf("----------------------------- Total number of halos including subgrid: %ld ---------------------- \n\n", nhalos_z);   fflush(0);
-    } /* subgrid cycle ends */
-    rewind(fid_out);
-    elem=fwrite(&nhalos_z,sizeof(long int),1,fid_out);
-    fclose(fid_out);       
-        
-    } /* ends box cycle */
+      
+      halo_mass=halo_mass/pow(10.0,global_halo_dlm);
+      R=pow(3/4.0/PI/global_rho_m*halo_mass,1.0/3);
 
+      /*** subgrid cycle for same z ***/
+      /************************************************/
+      if(global_use_sgrid==1){
+	neg=0;
+	zer=0;
+	while (halo_mass >= global_halo_Mmin) {
+	  //	printf("\n----------------------------------------- subgrid halo mass=%E -----------------------------------\n", halo_mass); fflush(0);
+	  nhalos_R=0;
+	  sigma_aux = sigma(R);   
+	  dndm_av = mass_function_ST(redshift, halo_mass)*halo_mass*(pow(10.0,global_halo_dlm)-1)*pow(global_dx_halo,3);  /* mass_function_ST in 1/Msun/(Mpc/h)^3 - comoving volume */
+	  hbias = Bias(redshift, sigma_aux);
+	
+	  for (i = 0; i < global_N_halo; i++) {
+	    for (j = 0; j < global_N_halo; j++) {
+	      nhalos_cat=0;
+	      for (p = 0; p < global_N_halo; p++) {
+		index = i * global_N_halo * global_N_halo + j * global_N_halo + p;
+		if(flag_halo[index]==0)  {
+		  tempv=map_in_f[index]*growth*hbias;
+		  Pnhalos = gsl_ran_poisson(rpoisson,dndm_av); /* number of halos for a given mass given by Poisson distribution */
+		  nn=(int)round(Pnhalos*(1.0+tempv));
+		  if (tempv < -1) neg++;
+		  for (ii = 0; ii < nn; ii++) {
+		    halo_cat[nhalos_cat].x=i;
+		    halo_cat[nhalos_cat].y=j;
+		    halo_cat[nhalos_cat].z=p;
+		    halo_cat[nhalos_cat].Mass=halo_mass;
+		    nhalos_R++;
+		    nhalos_cat++;
+		    nhalos_z++;
+		  }
+		}
+	      }
+	      if(nhalos_cat>0) elem=fwrite(halo_cat, sizeof(Halo_t), nhalos_cat, fid_out);
+	    }
+	  }
+
+	  halo_mass=halo_mass/pow(10.0,global_halo_dlm);
+	  R=pow(3/4.0/PI/global_rho_m*halo_mass,1.0/3);
+
+	// printf("Number of halos for M=%E: %ld\n",halo_mass, nhalos_R);fflush(0);	
+	} /* ends subgrid cycle over halo masses */
+	/*************************************/
+	//	printf("Negative values: %d\n", neg);
+	printf("----------------------------- Total number of halos including subgrid: %ld ---------------------- \n\n", nhalos_z);   fflush(0);
+      } /* subgrid cycle ends */
+      rewind(fid_out);
+      elem=fwrite(&nhalos_z,sizeof(long int),1,fid_out);
+      fclose(fid_out);       
+        
+    }
   } /* ends redshift cycle */
    /****************************************************/
   /****************************************************/

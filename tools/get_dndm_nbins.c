@@ -2,7 +2,7 @@
 /*********************************************************************************************************
 SimFast21
 Auxiliar code - 2014
-Description: Calculates halo dn/dm for a given halo catalogue. Uses same mass range as simulation.
+Description: Calculates halo dn/dm for a given halo catalogue.
 Uses user provided logarithmic binning.
 Also calculates theoretical mass function.
 *********************************************************************************************************/
@@ -36,7 +36,7 @@ int main(int argc, char **argv){
 
   if(argc!=5) {
     printf("\nCalculates the halo dn/dm for a given catalogue.\n");
-    printf("usage: get_dndm_nbins  work_dir   halo_catalog_file  z  nbins\n");
+    printf("usage: get_dndm_nbins  Simfast21_dir   halo_catalog_file  z  nbins\n");
     printf("Halo catalog in Simfast21 format. Uses logarithmic binning.\n\n");
     exit(1);
   }  
@@ -89,7 +89,7 @@ int main(int argc, char **argv){
   printf("# Total number of halos in catalogue: %ld, average number of halos per cell: %E\n",ntot, 1.0*ntot/global_N3_halo);
   printf("# Number density: %E (h/Mpc)^3, dn/dm for total mass range: %E (h/Mpc)^3/Msun\n",1.0*ntot/global_L3,1.0*ntot/global_L3/(Mmax-Mmin));
   printf("\n# Mass [Msun]    dndm [(h/Mpc)^3/Msun]\n");
-  printf("\n#  bin_min_Mass     bin_max_Mass     Mass_mid   Mass_av   Mass_weigth_sim   Mass_weight_calc   dndm_sim       dndm_calc\n");
+  printf("\n#  bin_min_Mass      bin_max_Mass      Mass_mid      Mass_av      Mass_weigth_sim      Mass_weight_calc      dndm_sim      dndm_calc\n");
   for(i=0;i<N;i++) {
     if(dndm[i]>0) massv[i]=massv[i]/dndm[i];
     m1=Mmin*pow(10,i*dlm);
@@ -106,7 +106,7 @@ int main(int argc, char **argv){
     }
     smass=smass/sdndma;
     sdndma=sdndma*dmi;
-    printf("%E   %E  %E  %E  %E   %E      %E    %E\n",m1, m2,m3, (m1+m2)/2.0, massv[i], smass, dndm[i]/global_L3/(m2-m1),sdndma/(m2-m1));
+    printf("%E     %E     %E     %E     %E     %E     %E     %E\n",m1, m2,m3, (m1+m2)/2.0, massv[i], smass, dndm[i]/global_L3/(m2-m1),sdndma/(m2-m1));
   }
   printf("\n");
   

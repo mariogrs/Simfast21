@@ -2,7 +2,8 @@
 /*********************************************************************************************************
 SimFast21
 Auxiliar code - 2014
-Description: Put the halo number fluctuations in a box for a given mass range. This is useful for instance to calculate the halo power spectrum and check it has the correct bias.
+Description: Put the halo number fluctuations in a box for a given mass range. 
+This is useful for instance to calculate the halo power spectrum and check it has the correct bias.
 *********************************************************************************************************/
 
 /* --------------Includes ----------------------------------------- */
@@ -32,12 +33,11 @@ int main(int argc, char **argv){
   double mass;
   long int index, i;
   double Mmin, Mmax, cat_Mmin, cat_Mmax, bin_Mmin, bin_Mmax; 
-  double ntot,sim_Mmax,sim_Mmin, R_lim, R, halo_mass;
-  double rhalo;
+  double ntot;
 
   if(argc!=6) {
     printf("\nCalculates halo number density fluctuations in a box for a given mass range. Ouputs a box of NxNxN floats.\n");
-    printf("usage: get_halo_deltan   work_dir   halo_catalog_file   Mmin   Mmax  output_box_file\n");
+    printf("usage: get_halo_deltan   Simfast21_dir   halo_catalog_file   Mmin   Mmax  output_box_file\n");
     printf("Halo catalog in Simfast21 format. Mmin and Mmax in Msun units\n");
     printf("Note: make sure that Mmin and Mmax is within the mass range of the halo finding algorithm!\n\n");
     exit(1);
@@ -50,48 +50,16 @@ int main(int argc, char **argv){
   printf("Using %d threads\n",global_nthreads);
 #endif
 
-
-  if(global_halo_Rmin_dx < 2) {
-    printf("Warning: \"halo_Rmin_dx\" is quite small - this might have resolution effects on the standard halo finding excursion set formalism\n");
-    R_lim=0.620350491*global_dx_halo;
-  }else {
-    R_lim=global_halo_Rmin_dx*global_dx_halo;
-  }
-  halo_mass=(4.0/3.0)*PI*global_rho_m*pow(R_lim,3);
-  printf("Minimum mass for standard halo finding method (excursion set formalism): %E\n",halo_mass);
-  if(global_use_sgrid==1){
-    if(halo_mass <= global_halo_Mmin+10.) {
-      printf("No need to do subgridding: resolution is enough for %E mass halos\n",global_halo_Mmin);
-      global_use_sgrid=0;
-      R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
-    }
-  }else {
-    if(halo_mass > global_halo_Mmin) {
-      printf("Warning - minimum mass for simulation is larger than halo_Mmin: you need to use subgrid.\n");
-    } else R_lim=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
-  }
-  if(global_use_sgrid==1)
-    R=pow(3./4/PI/global_rho_m*global_halo_Mmin,1./3);
-  else
-    R=R_lim;
-  rhalo=exp(log(global_halo_Rmax/R)/global_Nhbins);
-
-
   
   Mmin=atof(argv[3]);
   Mmax=atof(argv[4]);
   sprintf(fname, "%s/Halos/%s",argv[1],argv[2]);
-  sim_Mmax=(4.0/3.0)*PI*global_rho_m*pow(global_halo_Rmax,3);
-  sim_Mmin=(4.0/3.0)*PI*global_rho_m*pow(global_halo_Rmin_dx*global_dx_halo,3);
-  printf("Input: %s, output: %s, Mmin: %E Msun, Mmax: %E Msun, Sim Mmin: %E Msun, Sim Mmax: %E Msun\n",fname, argv[5], Mmin, Mmax, sim_Mmin, sim_Mmax);
-  if(Mmin < sim_Mmin) printf("Warning: Mmin is smaller than minimum mass used in the standard halo finding method (no subgrid)\n");
-  if(Mmax > sim_Mmax) printf("Warning: Mmax is larger than largest halo mass in the simulation.\n");
-
+  
   if(!(halo_map=(float *) malloc(global_N3_halo*sizeof(float)))) {
     printf("Problem...\n");
     exit(1);
   }
-      
+  
     /* read halo catalog */
     if((fid=fopen(fname,"rb"))==NULL){  
       printf("Halo file: %s does not exist... Check path or run get_halos for this configuration\n",fname);
@@ -115,8 +83,8 @@ int main(int argc, char **argv){
     ntot=0.0;
     cat_Mmin=(double)halo_v[0].Mass;
     cat_Mmax=(double)halo_v[0].Mass;
-    bin_Mmin=1.0e20;
-    bin_Mmax=0.0;
+    bin_Mmin=cat_Mmin;
+    bin_Mmax=cat_Mmax;
     for(i=0;i<nhalos;i++){
       mass=(double)halo_v[i].Mass;
       if(mass > cat_Mmax) cat_Mmax=mass;
@@ -137,7 +105,7 @@ int main(int argc, char **argv){
       printf("No halos found in mass range. Exiting...\n");
       exit(1);
     }
-    bin_Mmax=bin_Mmax*pow(rhalo,3); /* adjust mass interval due to mass resolution */
+    bin_Mmax=bin_Mmax*pow(10,global_halo_dlm); /* adjust mass interval due to mass resolution */
     printf("Catalogue Mmin: %E Msun, Catalogue Mmax: %E Msun\n",cat_Mmin, cat_Mmax);
     printf("Catalogue Mmin in given mass range: %E Msun, Catalogue Mmax in given mass range: %E Msun\n",bin_Mmin, bin_Mmax);
     printf("Total number of halos in mass range: %ld, average number of halos per cell: %E\n",(long int)ntot, ntot/global_N3_halo);
