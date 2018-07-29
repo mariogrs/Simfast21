@@ -112,6 +112,7 @@ int main(int argc, char * argv[]) {
   }
 
   nzsfr=(int)((global_Zmaxsim-global_Zminsfr)/global_Dzsim)+1;
+  // printf("nzsfr: %d\n",nzsfr); //msmod
   zbox = (double*) malloc(sizeof(double)*nzsfr);
   sfra = (double *) malloc(sizeof(double)*(nzsfr));
   /*Initialize some variables*/  
@@ -126,7 +127,7 @@ int main(int argc, char * argv[]) {
     exit(1);
   }
   for (i=0;i<nzsfr;i++) 
-    if(fscanf(file,"%lf",&(zbox[nzsfr-1-i]))!=1) { 
+    if(fscanf(file,"%lf",&(zbox[nzsfr-1-i]))!=1) {   // assume first line in file is highest z
       printf("Error reading zsim.txt!\n");
       exit(1);
     }
@@ -138,12 +139,14 @@ int main(int argc, char * argv[]) {
   }
   /* sfr in Msun/Mpc^3*h^3/yr (comoving volume and proper time) */
   for (i=0;i<nzsfr;i++) {
-    if(fscanf(file,"%f %lf",&tmp,&(sfra[nzsfr-1-i]))!=2) {  /* starts again with highest redshift */
+    if(fscanf(file,"%f %lf",&tmp,&(sfra[nzsfr-1-i]))!=2) {  // assume first line in file is highest z
       printf("Error reading %s file\n",fname);
       exit(1);
     }
+    //   printf("z: %E  sfra: %E\n",zbox[nzsfr-1-i],sfra[nzsfr-1-i]);  // msmod
     /* convert to baryon number and comoving density in 1/Mpc^3 */
     sfra[nzsfr-1-i]*=Msun/mbar*global_hubble*global_hubble*global_hubble; /* starts with highest redshift! */
+    //   printf("z: %E  sfra: %E\n",zbox[nzsfr-1-i],sfra[nzsfr-1-i]);  // msmod
   }
   fclose(file);
   sprintf(fname,"%s/Output_text_files/xa_av_N%ld_L%.1f.dat",argv[1],global_N_smooth,global_L/global_hubble); 
@@ -157,8 +160,9 @@ int main(int argc, char * argv[]) {
   /**************************************************/
   for(nzbox=nzsfr-1;nzbox >= 0;nzbox--) {
     /* our box is at nzbox */
-   
-    printf("\n\n Lya ztocompute: %f\n",zbox[nzbox]);fflush(0);
+
+    //   printf("nzbox: %d\n",nzbox);
+    printf("\n\n Lya z to compute: %f\n",zbox[nzbox]);fflush(0);
     sprintf(fname,"%s/Lya/xalpha_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
     if((file = fopen(fname,"rb"))!=NULL) {
       printf("File:%s already exists - skipping this redshift...\n",fname);
@@ -169,7 +173,7 @@ int main(int argc, char * argv[]) {
       //      printf("Lya full max redshift: %f\n",zmax2);
       /**** The condition below is a bit strict - maybe we can use a lower zmax2 and still get the integral to converge?? ****/
       if(zmax2>=zbox[nzsfr-1]+global_Dzsim) {
-	printf("Need higher redshift boxes for proper computation - zmax2: %f  zf: %f - setting zmax2 to simulation zf...\n",zmax2,zbox[nzsfr-1]+global_Dzsim);
+	printf("Warning: need higher redshift boxes for proper computation - zmax2: %f  zf: %f - setting zmax2 to simulation zf...\n",zmax2,zbox[nzsfr-1]+global_Dzsim);
 	zmax2=zbox[nzsfr-1]+global_Dzsim-0.0000001;
       }
       create_rz_table(zbox[nzbox], zbox[nzsfr-1]+global_Dzsim , nztab, &rtab, &ztab);
@@ -179,7 +183,7 @@ int main(int argc, char * argv[]) {
 	if(zrmax>zmax2) zrmax=zmax2;
       }
       zrmax=zrmax/1.001; /* reduce by 0.1% to avoid zrmax in the limit of boxes... */
-      //     printf("zrmax: %f\n",zrmax);
+      //     printf("zmax2: %f    zrmax: %f\n",zmax2, zrmax);  // msmod
       /*Compute how many box we need to zrmax*/
       /* Note: zrmax for 50 Mpc/h is always less than zmax2 */
       /* !!! This also assumes that zrmax < zbox[nzbox-1] !!! */ 
@@ -197,7 +201,7 @@ int main(int argc, char * argv[]) {
       /***** inhomogeneous computation *****/
       /*************************************/
       /*Loop over the box to compute the contribution to J_alpha*/  
-      //     printf("Using %d boxes\n",numboxes);fflush(0);
+      //     printf("numboxes: %d\n",numboxes);fflush(0);   //msmod
       for(box=0;box<numboxes;box++) {
 	
 	//	printf("Convolving box %d\n",box);fflush(0);
@@ -214,6 +218,8 @@ int main(int argc, char * argv[]) {
 	/* Compute the kernel */
 	if (zbox[nzbox+box]+global_Dzsim >= zrmax) ztabmax=zrmax; else ztabmax=zbox[nzbox+box]+global_Dzsim;
 	kernel = produceKernel(global_N_smooth,zbox[nzbox],zbox[nzbox+box],ztabmax,&ebG);
+
+	//	printf("zboxnz: %f  zbox: %f  ztabmax: %E\n",zbox[nzbox],zbox[nzbox+box], ztabmax);fflush(0); // msmod
 	
 	/* Convolve kernel with sfr */
 	convolve(sfr,kernel,global_N_smooth);
@@ -237,6 +243,8 @@ int main(int argc, char * argv[]) {
 	jalphaconst+=drdz(z)/global_hubble*sfra[ind]*emis(zbox[nzbox],z,&ebG);  /* 1/h to convert drdz from Mpc/h to Mpc */
       }  
       jalphaconst*=(1.+zbox[nzbox])*(1.+zbox[nzbox])/4./PI*dz/Mpc2m/Mpc2m/y2s;  /* units in number/m^2/s/Hz/sr */
+
+      //     printf("jalphaconst: %E\n",jalphaconst); fflush(0); // msmod
       
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(Jalpha,jalphaconst) private(i) 
@@ -276,6 +284,7 @@ int main(int argc, char * argv[]) {
 	Jalpha[i]/=Jc;
 	aver1+=Jalpha[i];
       }
+      //     printf("final ja: %E\n", aver1); // msmod
       for(i=0;i<global_N3_smooth;i++) sfrt[i]=(float)Jalpha[i];    
       sprintf(fname,"%s/Lya/xalpha_z%.3f_N%ld_L%.1f.dat",argv[1],zbox[nzbox],global_N_smooth,global_L/global_hubble);
       if((file = fopen(fname,"wb"))==NULL) {

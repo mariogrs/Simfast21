@@ -96,7 +96,7 @@ int main(int argc, char **argv){
 
 
   /* redshift cycle */
-  for(redshift=zmin;redshift<(zmax+dz/10);redshift+=dz){
+  for(redshift=zmax;redshift>(zmin-dz/10);redshift-=dz) {    // starts with highest z
     sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,global_L/global_hubble);
     fid=fopen(fname,"rb");
     if (fid==NULL) {printf("\nError reading %s file... Check path or if the file exists...",fname); exit (1);}
@@ -143,7 +143,7 @@ int main(int argc, char **argv){
     sfrd_aver+=sfr_box2[i];
   }
   sfrd_aver=sfrd_aver/global_N3_smooth;
-  fprintf(fid_sa,"%f %.8E\n",redshift,sfrd_aver); /* prints average SFRD */
+  fprintf(fid_sa,"%f %.8E\n",redshift,sfrd_aver); /* prints average SFRD - starts with lowest z */
 
   }  /* ends redshift cycle */
 
