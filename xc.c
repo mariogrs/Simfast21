@@ -73,7 +73,7 @@ int main(int argc, char * argv[]) {
     exit(1);
   }
   for (i=0;i<nzsfr;i++) 
-    if(fscanf(fid,"%lf",&(zbox[nzsfr-1-i]))!=1) { 
+    if(fscanf(fid,"%lf",&(zbox[nzsfr-1-i]))!=1) {    // asume first line is highest z
       printf("Error reading zsim.txt!\n");
       exit(1);
     }
