@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
 #pragma omp parallel for shared(global_N3_smooth, halo_map, global_dx_halo, global_dx_smooth) private(i)
 #endif
       for(i=0;i<(global_N3_smooth);i++){
-	halo_map[i] = halo_map[i]*pow(global_dx_smooth/global_dx_halo,3); /* corrects for the fact that we averaged instead of summing... */
+	halo_map[i] = halo_map[i]*pow(global_dx_smooth/global_dx_halo,3)*global_fesc; /* corrects for the fact that we averaged instead of summing... */
       }     
       /******************************/
       /* uses SFRD boxes instead: */
@@ -270,7 +270,7 @@ int main(int argc, char *argv[]) {
 #pragma omp parallel for shared(global_N3_smooth, halo_map) private(i)
 #endif
       for(i=0;i<(global_N3_smooth);i++){
-	halo_map[i] = halo_map[i]*global_dx_smooth*global_dx_smooth*global_dx_smooth*Qion(redshift);
+	halo_map[i] = halo_map[i]*global_dx_smooth*global_dx_smooth*global_dx_smooth*Qion(redshift)*global_fesc;
       }
     }
       
