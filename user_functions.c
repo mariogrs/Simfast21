@@ -36,13 +36,14 @@ double ebG(double nu);
 #define c3      0.44
 #define c4      2.27044695e+00
 #define V_norm  1.e+45
+#define norm_fesc 0.375
 
 double Rion(float hmass, double redshift){
   double tmp_ion1 =  c1*hmass*pow((1.0 + redshift ),c4);
   double tmp_ion2 =  pow((hmass/c2),c3);
   double tmp_ion3 =  exp(- pow((c2/hmass),3.0));
   double tmp_ion4 =  tmp_ion1*tmp_ion2*tmp_ion3;
-  double tmp_ion5 =  tmp_ion4*global_fesc/V_norm;
+  double tmp_ion5 =  tmp_ion4*norm_fesc/V_norm;
   return tmp_ion5;
 }
 
