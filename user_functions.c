@@ -91,9 +91,9 @@ double Qion(double z) {
 
 /********** ratio between recombination rate coefficient (at T=10^4K) and interpolation function of Haardt & Madau (2012) uniform ionising background  ****************/
 double G_H(double redshift){
-  double gh_tmp1 =   1.86956756e-17*pow(redshift,5.)  - 9.05797228e-16*pow(redshift,4.) +  1.56916163e-14*pow(redshift,3.);
-  double gh_tmp2 =   -1.07046180e-13*pow(redshift,2.) + 1.15923648e-13*redshift + 1.04351586e-12;
-  double b_h =  4.19232273531e-13/(gh_tmp1 + gh_tmp2);
+  double gh_tmp1 =   - 4.37152818e-05*pow(redshift,5.)  + 1.64394635e-03*pow(redshift,4.) - 2.03044756e-02*pow(redshift,3.);
+  double gh_tmp2 =   7.18335221e-02*pow(redshift,2.) - 8.85791388e-02*redshift -1.20887500e+01;
+  double b_h =  4.19232273531e-13/pow(10.0, gh_tmp1 + gh_tmp2);
   return b_h;
 }
 
