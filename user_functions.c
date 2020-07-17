@@ -66,7 +66,7 @@ double Rrec(float overdensity, double redshift){
 
 
 /********* SFR ****************/
-/* units: M/yr */
+/* units: M_sun/yr */
 
 double sfr(float hmass, double z) {
 
@@ -76,7 +76,7 @@ double sfr(float hmass, double z) {
 
 
 /********* Qion ****************/
-/* units: yr*s^-1*M^-1 */
+/* units: yr*s^-1*M_sun^-1 */
 
 #define a 2.05707274e-02
 #define b 5.29944413e+01
