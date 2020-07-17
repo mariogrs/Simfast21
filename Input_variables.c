@@ -48,22 +48,15 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"zmax")==0)global_Zmaxsim=atof(third);
       else if(strcmp(first,"zmin")==0) global_Zminsim=atof(third);
       else if(strcmp(first,"sim_length")==0)global_L=atof(third);  /* Mpc */
-      else if(strcmp(first,"seed")==0){
-	global_seed=atoi(third);
-	if(global_seed < 1) {
-	  printf("# seed < 1 - no good: using time()\n");
-	  global_seed=(long int)time(NULL);
-	  printf("# Using seed: %lu\n",global_seed);
-	} 
-      }     
+      else if(strcmp(first,"seed")==0) global_seed=atoi(third);   
       else if(strcmp(first,"Vel_comp")==0)global_vi=atoi(third);
       else if(strcmp(first,"N_halo")==0)global_N_halo=atoi(third);
       else if(strcmp(first,"N_smoothed")==0)global_N_smooth=atoi(third);
 
       /***** Cosmological parameters *****/
       if(strcmp(first,"use_camb_matterpower")==0){
-	if(strcmp(third,"T")==0) global_pk_flag=1;    
-	if(strcmp(third,"F")==0) global_pk_flag=0;    
+	      if(strcmp(third,"T")==0) global_pk_flag=1;    
+	      if(strcmp(third,"F")==0) global_pk_flag=0;    
       }
       else if(strcmp(first,"camb_file")==0)strcpy(global_camb_file,third);
       else if(strcmp(first,"omega_matter")==0)global_omega_m=atof(third);
@@ -79,7 +72,7 @@ void get_Simfast21_params(char *basedir){
       else if(strcmp(first,"STb")==0)global_STb=atof(third);
       else if(strcmp(first,"STc")==0)global_STc=atof(third);
       else if(strcmp(first,"Use_subgrid")==0){
-	if(strcmp(third,"T")==0) global_use_sgrid=1; else global_use_sgrid=0;
+	      if(strcmp(third,"T")==0) global_use_sgrid=1; else global_use_sgrid=0;
       }    
       else if(strcmp(first,"halo_Mmin")==0)global_halo_Mmin=atof(third);
       else if(strcmp(first,"halo_dlm")==0)global_halo_dlm=atof(third);
@@ -93,11 +86,11 @@ void get_Simfast21_params(char *basedir){
       /* xray + Lya */
       else if(strcmp(first,"use_SFR")==0){
       	if(strcmp(third,"T")==0) global_use_SFR=1;    
-	if(strcmp(third,"F")==0) global_use_SFR=0;
+	      if(strcmp(third,"F")==0) global_use_SFR=0;
       }
       else if(strcmp(first,"use_Lya_xrays")==0){
       	if(strcmp(third,"T")==0) global_use_Lya_xrays=1;    
-	if(strcmp(third,"F")==0) global_use_Lya_xrays=0;
+	      if(strcmp(third,"F")==0) global_use_Lya_xrays=0;
       }
       else if(strcmp(first,"Zminsfr")==0) global_Zminsfr=atof(third);
       else if(strcmp(first,"Enu0")==0) global_Enu0=atof(third);
@@ -107,8 +100,8 @@ void get_Simfast21_params(char *basedir){
 
       /* Auxiliary */
       else if(strcmp(first,"Original_nldensity_box")==0){
-	if(strcmp(third,"T")==0) global_save_original_deltanl=1;    
-	if(strcmp(third,"F")==0) global_save_original_deltanl=0;
+	      if(strcmp(third,"T")==0) global_save_original_deltanl=1;    
+	      if(strcmp(third,"F")==0) global_save_original_deltanl=0;
       }      
 
     }   

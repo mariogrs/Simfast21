@@ -105,6 +105,11 @@ int main(int argc, char **argv){
 
   printf("Reading parameters...\n\n");
   get_Simfast21_params(argv[1]);
+  if(global_seed < 1) {
+	  printf("# seed < 1 - no good: using time()\n");
+	  global_seed=(long int)time(NULL);
+	  printf("# Using seed: %lu\n",global_seed);
+	} 
   print_parms();
 
 #ifdef _OMPTHREAD_

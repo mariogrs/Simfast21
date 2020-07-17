@@ -40,17 +40,22 @@ int main(int argc, char **argv){
   double wsum;
 
 
-  /* dl is now size of cell */
+  /* dl is now comoving size of cell */
 #ifdef _OMPTHREAD_
-  printf("# SYNTAX: power3d Nbytes N1 N2 N3 dl flag input_file nthreads (output goes to standard output)\n\n");
-  if(argc != 9) exit(1);
+  if(argc != 9) {
+    printf("SYNTAX: power3d Nbytes N1 N2 N3 dl flag input_file nthreads (output goes to standard output)\n\n");
+    printf("\"Nbytes\" is the number of bytes of each value (e.g., 4 for float and 8 for double).\n# The input file should have the following format: N3 is the fastest index, then N2, then N1 (e.g. the first set of numbers in the input binary file should be for N3 and so on...).\n# dl is the cell size (the same in all directions). The k and P(k) will have units after dl.\n# flag selects the window function: 0 - top hat, 1 - Bartlett, 2 - Welch\n");
+    exit(1);
+  }
   nthreads=atoi(argv[8]);
   omp_set_num_threads(nthreads);
 #else
-  printf("# SYNTAX: power3d Nbytes N1 N2 N3 dl flag input_file (output goes to standard output)\n\n");
-  if(argc != 8)  exit(1); 
+  if(argc != 8)  {
+    printf("SYNTAX: power3d Nbytes N1 N2 N3 dl flag input_file (output goes to standard output)\n\n");
+    printf("\"Nbytes\" is the number of bytes of each value (e.g., 4 for float and 8 for double).\n# The input file should have the following format: N3 is the fastest index, then N2, then N1 (e.g. the first set of numbers in the input binary file should be for N3 and so on...).\n# dl is the cell size (the same in all directions). The k and P(k) will have units after dl.\n# flag selects the window function: 0 - top hat, 1 - Bartlett, 2 - Welch\n");
+    exit(1); 
+  }
 #endif
-  printf("#\"Nbytes\" is the number of bytes of each value (e.g., 4 for float and 8 for double).\n# The input file should have the following format: N3 is the fastest index, then N2, then N1 (e.g. the first set of numbers in the input binary file should be for N3 and so on...).\n# dl is the cell size (the same in all directions). The k and P(k) will have units after dl.\n# flag selects the window function: 0 - top hat, 1 - Bartlett, 2 - Welch\n");
 
 #ifdef _OMPTHREAD_
   if(fftw_init_threads()==0) {
@@ -95,14 +100,20 @@ int main(int argc, char **argv){
       printf("Mem1 Problem...\n");
       exit(1);
     }
-    fread(map_in_f,bsize,N1*N2*N3,fid_in);
+    if(fread(map_in_f,bsize,N1*N2*N3,fid_in)!= N1*N2*N3) {
+      printf("Reading file error...\n");
+      exit(1);
+    }
   }
   if(bsize==8) {
     if(!(map_in_d=(double *) malloc(N1*N2*N3*sizeof(double)))) {
       printf("Mem1 Problem...\n");
       exit(1);
     }
-    fread(map_in_d,bsize,N1*N2*N3,fid_in);
+    if(fread(map_in_d,bsize,N1*N2*N3,fid_in)!= N1*N2*N3) {
+      printf("Reading file error...\n");
+      exit(1);
+    }
   }
   if(!(map_in_w=(double *) malloc(N1*N2*N3*sizeof(double)))) {
     printf("Memory Problem...\n");
@@ -117,7 +128,7 @@ int main(int argc, char **argv){
       }
     }
   }
-  printf("#sum: %E\n",wsum); fflush(0);
+  printf("# window sum: %E\n",wsum); fflush(0);
 
   if(bsize==4) { 
 #ifdef _OMPTHREAD_
@@ -156,7 +167,7 @@ int main(int argc, char **argv){
   }
   fftw_execute(pr2c);
 
-  printf("#Now calculating power spectum\n");fflush(0);
+  printf("# Now calculating power spectum\n");fflush(0);
   /* Calculate power */
   for(i=0;i<N1;i++) {
     if(i>N1/2) {
@@ -174,7 +185,7 @@ int main(int argc, char **argv){
       }
     }
   }
-
+  printf("# Output: k(units 1/dl)     P(k)(units of input box cell values^2*dl^3)\n");
   for(i=0;i<nk;i++) {
     if(nps[i]==0) nps[i]=1;
       printf("%f   %E\n",i*dk,pwsp3d[i]/nps[i]/wsum*dl*dl*dl); 

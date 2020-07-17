@@ -1,4 +1,5 @@
 #compiler
+#cc = /usr/local/bin/gcc-8
 cc = gcc
 
 #complilation flags
@@ -11,6 +12,7 @@ fftwd = -lfftw3_omp -lfftw3
 #fftwd = -lfftw3_threads -lfftw3
 
 omp = -fopenmp -D_OMPTHREAD_
+#omp = -Xpreprocessor -fopenmp -D_OMPTHREAD_
 gsl = -lgsl -lgslcblas -lm
 deb = -g
 
@@ -23,7 +25,7 @@ auxh = auxiliary.h Input_variables.h
 main = get_densityfield.x get_velocityfield.x get_halos.x get_nldensity.x adjust_halos.x \
 	xalpha.x xc.x epsilonXon.x integratexe.x integrateTempX.x t21.x get_HIIbubbles.x get_SFR.x
 
-tools = tools/get_halo_deltan.x tools/opdepth.x \
+tools = tools/get_halo_deltan.x tools/opdepth.x tools/power3d_f.x tools/power3d_cross.x \
 	tools/get_dndm_nbins.x tools/adndm.x tools/abias.x tools/power3d.x tools/rz.x tools/vel_grad.x
 
 Simfast21: $(main) $(tools)

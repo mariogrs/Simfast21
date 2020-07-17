@@ -231,7 +231,7 @@ int main(int argc, char *argv[]) {
 #pragma omp parallel for shared(global_N3_halo, halo_map1) private(i)
 #endif
       for(i=0;i<(global_N3_halo);i++){
-	halo_map1[i] =0.0;
+	      halo_map1[i] =0.0;
       }      
       sprintf(fname, "%s/Halos/halonl_z%.3f_N%ld_L%.1f.dat.catalog",argv[1],redshift,global_N_halo,global_L/global_hubble); 
       fid=fopen(fname,"rb");
@@ -239,15 +239,15 @@ int main(int argc, char *argv[]) {
       elem=fread(&nhalos,sizeof(long int),1,fid);
       printf("Reading %ld halos...\n",nhalos);fflush(0);
       if(!(halo_v=(Halo_t *) malloc(nhalos*sizeof(Halo_t)))) { 
-	printf("Memory Problem - halo...\n");
-	exit(1);
+	      printf("Memory Problem - halo...\n");
+	      exit(1);
       }
       elem=fread(halo_v,sizeof(Halo_t),nhalos,fid);
       fclose(fid);
     
       // CIC Rion//
       for(i=0;i<nhalos;i++){
-	CIC(halo_v[i].x, halo_v[i].y, halo_v[i].z, Rion(halo_v[i].Mass, redshift), halo_map1, global_N_halo);  /* distributes Rion over cells */
+	      CIC(halo_v[i].x, halo_v[i].y, halo_v[i].z, Rion(halo_v[i].Mass, redshift), halo_map1, global_N_halo);  /* distributes Rion over cells */
       }
       free(halo_v);
       smooth_box(halo_map1, halo_map, global_N_halo, global_N_smooth);  /* Sums Rion over cells to reduce resolution - smooth_box averages down the box */
@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
 #pragma omp parallel for shared(global_N3_smooth, halo_map, global_dx_halo, global_dx_smooth) private(i)
 #endif
       for(i=0;i<(global_N3_smooth);i++){
-	halo_map[i] = halo_map[i]*pow(global_dx_smooth/global_dx_halo,3)*global_fesc; /* corrects for the fact that we averaged instead of summing... */
+	      halo_map[i] = halo_map[i]*pow(global_dx_smooth/global_dx_halo,3)*global_fesc; /* corrects for the fact that we averaged instead of summing... */
       }     
       /******************************/
       /* uses SFRD boxes instead: */
@@ -270,7 +270,7 @@ int main(int argc, char *argv[]) {
 #pragma omp parallel for shared(global_N3_smooth, halo_map) private(i)
 #endif
       for(i=0;i<(global_N3_smooth);i++){
-	halo_map[i] = halo_map[i]*global_dx_smooth*global_dx_smooth*global_dx_smooth*Qion(redshift)*global_fesc;
+	      halo_map[i] = halo_map[i]*global_dx_smooth*global_dx_smooth*global_dx_smooth*Qion(redshift)*global_fesc;
       }
     }
       
@@ -333,22 +333,22 @@ int main(int argc, char *argv[]) {
 #pragma omp parallel for shared(halo_map,density_map, bubble, global_N_smooth,flag_bub) private(ii,ij,ik,ind)
 #endif
       for(ii=0;ii<global_N_smooth;ii++){
-	for(ij=0;ij<global_N_smooth;ij++){
-	  for(ik=0;ik<global_N_smooth;ik++){
-	    ind=ii*global_N_smooth*global_N_smooth+ij*global_N_smooth+ik;
-	    if(halo_map[ind]>0.) {
-	      if(density_map[ind]>0.) {
-		if((double)halo_map[ind]/density_map[ind]>=1.0) {
-		  flag_bub=1;
-		  bubble[ind]=1.0;
-		}else bubble[ind]=0;
-	      }else {
-		flag_bub=1;
-		bubble[ind]=1.0;
+	      for(ij=0;ij<global_N_smooth;ij++){
+	        for(ik=0;ik<global_N_smooth;ik++){
+	          ind=ii*global_N_smooth*global_N_smooth+ij*global_N_smooth+ik;
+	          if(halo_map[ind]>0.) {
+	            if(density_map[ind]>0.) {
+		            if((double)halo_map[ind]/density_map[ind]>=1.0) {
+		              flag_bub=1;
+		              bubble[ind]=1.0;
+		            }else bubble[ind]=0;
+	            }else {
+		            flag_bub=1;
+		            bubble[ind]=1.0;
+	            }
+	          }else bubble[ind]=0;
+	        }
 	      }
-	    }else bubble[ind]=0;
-	  }
-	}
       }
 
       /* the next section uses a special technique to try to signal all points in the final bubble box as 0 or 1. It calculates the value in each cell as a convolution between a top hat window of radius R (0s and 1s) and the bubble box above of 0s and 1s which signals the center of bubbles of radius R. The convolution will either give zero if there are no bubbles over the radius or some number greater than zero otherwise. Maximum value would be the integral over the top-hat window, e.g. 4/3*pi*R^3. For only one bubble contributing, the result of the convolution would be dx^3 */
@@ -382,7 +382,7 @@ int main(int argc, char *argv[]) {
 	fftwf_execute(pc2r3);     /* FFT back to real ionisation (bubble) box  - output in bubble - dk^3 missing */
 
 	/* so missing factors are dx^6*dk^3 = (L/N)^6*(1/L)^3 = L^3/N^6 = dx^3/N^3 */
-	/* after correcting by the missing factors, the values will be between zero and 4/3*pi*R^3. The minimum non-zero value will be dx^3, with dx=L/N*/
+	/* after correcting by the missing factors, the values will be between zero and 4/3*pi*R^3. The minimum non-zero value will be dx^3, with dx=L/N */
         
 #ifdef _OMPTHREAD_
 #pragma omp parallel for shared(bubble,bubblef,global_N3_smooth) private(i)
